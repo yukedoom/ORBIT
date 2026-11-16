@@ -51,7 +51,7 @@ const TA="奇跡体験",TB="アンビリバボー",A=[...TA],B=[...TB],PER_FRAME
 const $=id=>document.getElementById(id);
 const text=$("text"),nEl=$("n"),btn=$("btn"),snd=$("snd"),label=$("label"),result=$("result"),bestEl=$("best"),flash=$("flash"),cv=$("fx");
 const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
-let count=0,f=0,running=false,raf=0,a=TA,b=TB,prevA=false,prevB=false,best=null,soundOn=true,ac=null;
+let count=0,tPrev=0,acc=0,running=false,raf=0,a=TA,b=TB,prevA=false,prevB=false,best=null,soundOn=true,ac=null;
 try{const v=localStorage.getItem("kiseki-best-max");if(v)best=+v}catch(e){}
 function showBest(){bestEl.textContent=best?"自己ベスト "+best.toLocaleString("ja-JP")+"回":"自己ベスト まだありません"}
 showBest();
@@ -101,11 +101,12 @@ function finish(){
   if(best===null||count>best){best=count;try{localStorage.setItem("kiseki-best-max",String(count))}catch(e){}msg="自己ベスト更新！　"+msg}
   result.textContent=msg;showBest();
 }
-function step(){
+function step(ts){
   if(!running)return;
-  if(count<30&&f++%4){raf=requestAnimationFrame(step);return}
-  const n=Math.max(1,Math.round(count*0.012*(0.8+Math.random()*0.4))); // 毎回回数をばらつかせて下位の桁も変化させる
-  for(let i=0;i<n;i++){
+  const dt=tPrev?Math.min((ts-tPrev)/1000,.1):0;tPrev=ts;
+  acc+=(count<30?15:count*.72)*dt*(.8+Math.random()*.4);
+  const n=Math.floor(acc);acc-=n;const t0=performance.now(); // 毎回回数をばらつかせて下位の桁も変化させる
+  for(let i=0;i<n&&(i&255||performance.now()-t0<12);i++){
     count++;a=shuf(A).join("");b=shuf(B).join("");
     if(a===TA&&b===TB){finish();return}
   }
@@ -115,7 +116,7 @@ btn.onclick=()=>{
   initAudio();
   if(running){running=false;cancelAnimationFrame(raf);btn.textContent="スタート";return}
   if(text.classList.contains("done")){count=0;text.classList.remove("done","pop");result.textContent="";label.textContent="";prevA=prevB=false}
-  running=true;btn.textContent="ストップ";raf=requestAnimationFrame(step);
+  running=true;tPrev=0;acc=0;btn.textContent="ストップ";raf=requestAnimationFrame(step);
 };
 snd.onclick=()=>{initAudio();soundOn=!soundOn;snd.textContent=soundOn?"音 ON":"音 OFF"};
 </script>
