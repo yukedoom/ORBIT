@@ -77,6 +77,7 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 .ddb,.tg{height:44px}
 .ddb{padding-top:0;padding-bottom:0}
 .tg{display:inline-flex;align-items:center;gap:12px;font:inherit;font-size:.9rem;font-weight:600;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:0 9px 0 18px;cursor:pointer}
+.tg small{margin-left:8px;color:var(--mute);font-weight:500;font-size:.75rem}
 .tg i{display:block;flex:none;width:42px;height:26px;border-radius:999px;background:transparent;box-shadow:inset 0 0 0 1.5px var(--mute);position:relative;transition:background .2s,box-shadow .2s}
 .tg i::after{content:"";position:absolute;left:4px;top:4px;width:18px;height:18px;border-radius:50%;background:var(--mute);transition:transform .2s,background .2s}
 .tg[aria-checked=true] i{background:var(--fg);box-shadow:none}
@@ -106,12 +107,12 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 <section id="g-o" class="g on"><div id="st" style="display:flex;flex-direction:column;align-items:center;width:100%">
   <div class="row"><strong>対戦モード</strong>
     <div class="dd" id="dd"><input type="hidden" id="mode" value="ai-easy"><button type="button" class="ddb" id="ddb">VS AI かんたん</button><ul class="ddl" id="ddl"></ul></div>
-    <button type="button" class="tg" id="tg" role="switch" aria-checked="false"><span>特別ルール</span><i></i></button></div>
+    <button type="button" class="tg" id="tg" role="switch" aria-checked="true"><span>特別ルール<small id="tgs">必殺技あり</small></span><i></i></button></div>
   <div class="row" id="olp" style="display:none"><button type="button" class="btn" id="mk">部屋を作る</button><input id="rc" placeholder="部屋コード" maxlength="5" autocapitalize="off" autocomplete="off" style="flex:none;width:130px;padding:9px 14px;font-size:.95rem"><button type="button" class="btn ghost" id="jn">入る</button></div>
   <div class="row" id="inv" style="display:none;flex-direction:column;gap:8px"><div class="inv-box"><span class="inv-l">部屋コード</span><b id="invc"></b><button type="button" class="btn ghost sm" id="cpc">コピー</button></div><div class="inv-box"><span class="inv-l">招待リンク</span><span id="invl" class="inv-url"></span><button type="button" class="btn ghost sm" id="cpl">コピー</button></div></div>
   <div class="row info"><div>ターン <span id="tc">1</span></div><div>手番 <span id="tn">黒</span></div><div>● <span id="bc">2</span></div><div>○ <span id="wc">2</span></div></div>
   <div id="board" class="ob"></div>
-  <div class="skills"><div id="p1" class="sc"><strong id="p1t">黒の必殺技</strong><div id="b-sk"></div></div><div id="p2" class="sc"><strong id="p2t">白の必殺技</strong><div id="w-sk"></div></div></div>
+  <div class="skills" id="skl"><div id="p1" class="sc"><strong id="p1t">黒の必殺技</strong><div id="b-sk"></div></div><div id="p2" class="sc"><strong id="p2t">白の必殺技</strong><div id="w-sk"></div></div></div>
   <div id="msg" class="msg"></div>
   <div class="row"><button id="pass" class="btn ghost">パス</button><button id="reset" class="btn">リセット</button></div>
 </div></section>
@@ -140,7 +141,7 @@ $('tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;  document
 /* ================= オセロ ================= */
 (()=>{
 const N=8,EMPTY=0,BLACK=1,WHITE=2;
-let SPECIAL=false,AIC=2,ONLINE=false,conn=null,peer=null,isHost=false,MYC=0,gen=0;
+let SKILLS_ON=true,AIC=2,ONLINE=false,conn=null,peer=null,isHost=false,MYC=0,gen=0;
 const CD={meteor:2,steal:2,snipe:2,shield:3};
 const SKILLS=[['meteor','✦ メテオ'],['steal','⇄ スティール'],['snipe','◎ スナイプ'],['shield','◈ シールド']];
 const W=[[100,-20,10,5,5,10,-20,100],[-20,-50,-2,-2,-2,-2,-50,-20],[10,-2,1,1,1,1,-2,10],[5,-2,1,1,1,1,-2,5],[5,-2,1,1,1,1,-2,5],[10,-2,1,1,1,1,-2,10],[-20,-50,-2,-2,-2,-2,-50,-20],[100,-20,10,5,5,10,-20,100]];
@@ -163,9 +164,9 @@ function initGame(remote){
   ONLINE=$('mode').value==='online';
   let intro='';
   if(isAI()){AIC=Math.random()<.5?WHITE:BLACK;intro=`あなたは${AIC===WHITE?'先手（黒）':'後手（白）'}です`}
-  if(ONLINE&&conn){if(isHost&&!remote){MYC=Math.random()<.5?BLACK:WHITE;send({t:'start',mc:3-MYC,sp:SPECIAL})}intro=`あなたは${MYC===BLACK?'先手（黒）':'後手（白）'}です`}
+  if(ONLINE&&conn){if(isHost&&!remote){MYC=Math.random()<.5?BLACK:WHITE;send({t:'start',mc:3-MYC,sp:SKILLS_ON})}intro=`あなたは${MYC===BLACK?'先手（黒）':'後手（白）'}です`}
   if(ONLINE&&!conn&&!remote)intro='部屋を作るか、部屋コードを入れて入室してください';
-  titles();
+  titles();syncTg();
   $('olp').style.display=ONLINE&&!conn?'flex':'none';
   $('reset').style.display=ONLINE&&conn&&!isHost?'none':'';
   say(intro);render();
@@ -183,7 +184,7 @@ function flippable(row,col,player){
 }
 const hasMove=p=>{for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(flippable(r,c,p).length)return true;return false};
 function handleToggle(k){
-  if(over||thinking||locked())return;
+  if(over||thinking||locked()||!SKILLS_ON)return;
   if(cooldowns[cur][k]>0)return say(`クールダウン中です（あと ${cooldowns[cur][k]} ターン）`);
   if(k==='shield'&&countShields(cur)>=3)return say('シールドは盤上に3つまでです');
   if(activeSkill===k){activeSkill=null;say('')}
@@ -194,6 +195,7 @@ const warn=t=>{if(!aiTurn())say(t);return false};
 const cnt=p=>{let n=0;for(const r of board)for(const v of r)if(v===p)n++;return n};
 function act(row,col){
   const opp=cur===BLACK?WHITE:BLACK,p=name(cur);
+  if(!SKILLS_ON)activeSkill=null;
   if(activeSkill==='meteor'){
     if(board[row][col]===EMPTY)return warn('破壊する駒を選んでください');
     const sup=meteorCount[cur]>=5;
@@ -267,7 +269,7 @@ function nm(b,sh,p,d,al,be){
 function aiCandidates(){
   const P=AIC,O=(3-AIC),L=[],oc=cnt(O);
   for(const[r,c]of movesOn(board,shields,P))L.push({t:'move',r,c,pen:0});
-  {
+  if(SKILLS_ON){
     const ok=k=>cooldowns[P][k]===0;
     for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=board[r][c];
       if(ok('meteor')&&v===O&&oc>1&&(meteorCount[P]>=5||!shields[r][c]))L.push({t:'meteor',r,c,pen:10});
@@ -310,7 +312,7 @@ function aiMove(){
   if(over||!aiTurn())return;
   const mode=$('mode').value,opp=(3-AIC);
   if(mode==='ai-hard'){hardMove();return}
-  {
+  if(SKILLS_ON){
     if(mode==='ai-hard'&&cooldowns[AIC].shield===0&&countShields(AIC)<3)for(const[r,c]of CORNERS)if(board[r][c]===AIC&&!shields[r][c]&&aiSkill('shield',r,c))return;
     if(mode!=='ai-easy'&&cooldowns[AIC].steal===0)for(const[r,c]of CORNERS)if(board[r][c]===opp&&!shields[r][c]&&aiSkill('steal',r,c))return;
     if(mode!=='ai-easy'&&cooldowns[AIC].meteor===0){const sup=meteorCount[AIC]>=5;for(const[r,c]of CORNERS)if(board[r][c]===opp&&(sup||!shields[r][c])&&aiSkill('meteor',r,c))return}
@@ -323,7 +325,7 @@ function aiMove(){
         else{const j=mode==='ai-normal'?12:4;moves.forEach(x=>x.s=(mode==='ai-normal'?x.w+x.n:x.w*2+x.n)+Math.random()*j);moves.sort((a,b)=>b.s-a.s);m=moves[0]}
     activeSkill=null;act(m.r,m.c);return;
   }
-  if(cooldowns[AIC].snipe===0&&mode!=='ai-easy'){
+  if(SKILLS_ON&&cooldowns[AIC].snipe===0&&mode!=='ai-easy'){
     for(const[r,c]of CORNERS)if(board[r][c]===EMPTY&&aiSkill('snipe',r,c))return;
     for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(board[r][c]===EMPTY&&aiSkill('snipe',r,c))return;
   }
@@ -340,16 +342,16 @@ function titles(){
 const hash=()=>board.map(r=>r.join('')).join('')+shields.map(r=>r.map(x=>+x).join('')).join('')+cur+'/'+turnCount;
 const send=m=>{try{if(conn&&conn.open)conn.send(m)}catch(e){}};
 const sendOp=o=>send({t:'op',h:hash(),...o});
-const syncTg=()=>$('tg').setAttribute('aria-checked',SPECIAL);
-const snap=()=>({b:board,s:shields,cur,tc:turnCount,pc:passCount,over,cd:cooldowns,mc:meteorCount,lm:lastMove,sp:SPECIAL});
-function loadSnap(x){board=x.b;shields=x.s;cur=x.cur;turnCount=x.tc;passCount=x.pc;over=x.over;cooldowns=x.cd;meteorCount=x.mc;lastMove=x.lm;SPECIAL=x.sp;activeSkill=null;prev=null;syncTg();render()}
+const syncTg=()=>{$('tg').setAttribute('aria-checked',SKILLS_ON);$('tgs').textContent=SKILLS_ON?'必殺技あり':'必殺技なし'};
+const snap=()=>({b:board,s:shields,cur,tc:turnCount,pc:passCount,over,cd:cooldowns,mc:meteorCount,lm:lastMove,sp:SKILLS_ON});
+function loadSnap(x){board=x.b;shields=x.s;cur=x.cur;turnCount=x.tc;passCount=x.pc;over=x.over;cooldowns=x.cd;meteorCount=x.mc;lastMove=x.lm;SKILLS_ON=x.sp;activeSkill=null;prev=null;syncTg();render()}
 function closeNet(){gen++;$('inv').style.display='none';try{conn&&conn.close()}catch(e){}try{peer&&peer.destroy()}catch(e){}conn=null;peer=null;isHost=false;MYC=0}
 function lost(g){if(g!==gen)return;conn=null;over=true;clearAi();say('相手との接続が切れました。対戦モードを選び直すと、新しい部屋を作れます');render()}
 function resync(){isHost?send({t:'state',x:snap()}):send({t:'resync'})}
 function recv(m){
   if(!m||!conn)return;
-  if(m.t==='start'&&!isHost){MYC=m.mc===BLACK?BLACK:WHITE;SPECIAL=!!m.sp;syncTg();initGame(true);return}
-  if(m.t==='special'&&!isHost){SPECIAL=!!m.v;syncTg();render();return}
+  if(m.t==='start'&&!isHost){MYC=m.mc===BLACK?BLACK:WHITE;SKILLS_ON=!!m.sp;syncTg();initGame(true);return}
+  if(m.t==='special'&&!isHost){SKILLS_ON=!!m.v;activeSkill=null;syncTg();render();return}
   if(m.t==='resync'&&isHost){send({t:'state',x:snap()});return}
   if(m.t==='state'&&!isHost){loadSnap(m.x);return}
   if(m.t!=='op')return;
@@ -358,7 +360,7 @@ function recv(m){
   if(m.a==='pass')pass();
   else if(m.a==='act'&&Number.isInteger(m.r)&&Number.isInteger(m.c)&&m.r>=0&&m.r<N&&m.c>=0&&m.c<N){
     const k=m.k||null;
-    if(k&&(!['meteor','steal','snipe','shield'].includes(k)||cooldowns[cur][k]>0))ok=false;
+    if(k&&(!SKILLS_ON||!['meteor','steal','snipe','shield'].includes(k)||cooldowns[cur][k]>0))ok=false;
     else{activeSkill=k;ok=act(m.r,m.c)}
   }else ok=false;
   if(!ok||hash()!==m.h){activeSkill=null;resync()}
@@ -419,9 +421,9 @@ function render(){
   prev=board.map(r=>r.slice());
   $('tc').innerText=turnCount;$('tn').innerText=name(cur)+(ONLINE&&conn?(cur===MYC?'（あなた）':'（相手）'):'');$('bc').innerText=b;$('wc').innerText=w;
   const pb=$('pass');
-  if(hints&&!canMove){pb.style.display='inline-block';if(!activeSkill){say('置けるマスがありません。必殺技を使うかパスしてください')}}else pb.style.display='none';
+  if(hints&&!canMove){pb.style.display='inline-block';if(!activeSkill){say(SKILLS_ON?'置けるマスがありません。必殺技を使うかパスしてください':'置けるマスがありません。パスしてください')}}else pb.style.display='none';
   $('p1').classList.toggle('turn',cur===BLACK&&!over);$('p2').classList.toggle('turn',cur===WHITE&&!over);
-  const aiCtl=$('mode').value!=='pvp';
+  $('skl').style.display=SKILLS_ON?'':'none';
   for(const[pre,pl]of[['b',BLACK],['w',WHITE]])for(const[k]of SKILLS){
     const btn=$(`${pre}-${k}`),lab=$(`${pre}-cd-${k}`),mine=pl===cur,ai=(isAI()&&pl===AIC)||(ONLINE&&pl!==MYC);
     if(k==='meteor')btn.firstElementChild.innerText=meteorCount[pl]>=5?'✦ スーパーメテオ':`✦ メテオ ${meteorCount[pl]}/5`;
@@ -439,7 +441,7 @@ function buildDD(){$('ddl').innerHTML=MODES.map(([v,t])=>`<li data-v="${v}" clas
 $('ddb').onclick=()=>$('ddl').classList.toggle('open');
 $('ddl').onclick=e=>{const li=e.target.closest('li');if(!li)return;$('mode').value=li.dataset.v;$('ddb').innerText=li.innerText;$('ddl').classList.remove('open');buildDD();closeNet();initGame()};
 document.addEventListener('click',e=>{if(!e.target.closest('#dd'))$('ddl').classList.remove('open')});
-$('tg').onclick=()=>{if(ONLINE&&conn&&!isHost)return;SPECIAL=!SPECIAL;syncTg();send({t:'special',v:SPECIAL});render()};
+$('tg').onclick=()=>{if(ONLINE&&conn&&!isHost)return;SKILLS_ON=!SKILLS_ON;activeSkill=null;syncTg();send({t:'special',v:SKILLS_ON});render()};
 async function copyText(t,b){
   let ok=false;
   try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
