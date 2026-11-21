@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>GAME BOX</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='w' cx='.32' cy='.28' r='.8'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23cfcfd4'/%3E%3C/radialGradient%3E%3ClinearGradient id='k' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233a3a40'/%3E%3Cstop offset='1' stop-color='%23000'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='%230d0d0f'/%3E%3Ccircle cx='25' cy='25' r='15' fill='url(%23w)'/%3E%3Ccircle cx='40' cy='40' r='15' fill='url(%23k)' stroke='%23f2f2f3' stroke-width='2.5'/%3E%3C/svg%3E">
 <style>
 :root{--bg:#f2f2f3;--fg:#111;--mute:#8a8a90;--card:rgba(255,255,255,.7);--line:rgba(0,0,0,.08);--cell:#e6e6e8;--cellh:#d9d9dc;--board:#fff;--hint:rgba(0,0,0,.22);color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#09090b;--fg:#f0f0f0;--mute:#8e8e96;--card:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);--cell:#18181b;--cellh:#232327;--board:#101013;--hint:rgba(255,255,255,.28)}}
@@ -75,6 +76,12 @@ body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radia
 input{flex:1;min-width:0;font:inherit;font-size:1.05rem;font-weight:600;color:var(--fg);background:var(--cell);border:1px solid var(--line);border-radius:999px;padding:13px 20px;outline:0;text-align:center;-moz-appearance:textfield}
 input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 0 2px var(--fg)}
+.tg{display:inline-flex;align-items:center;gap:12px;font:inherit;font-size:.85rem;font-weight:600;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 8px 7px 16px;cursor:pointer}
+.tg small{margin-left:6px;color:var(--mute);font-weight:500;font-size:.72rem}
+.tg i{width:38px;height:22px;border-radius:999px;border:1.5px solid var(--mute);position:relative;transition:.2s}
+.tg i::after{content:"";position:absolute;top:2.5px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--mute);transition:.2s}
+.tg[aria-checked=true] i{background:var(--fg);border-color:var(--fg)}
+.tg[aria-checked=true] i::after{left:19px;background:var(--bg)}
 /* fx */
 .flash{position:fixed;inset:0;pointer-events:none;z-index:50;animation:fl .5s ease-out forwards;background:radial-gradient(circle,var(--fg),transparent 75%)}
 .flash.hard{background:var(--fg)}.flash.meteor{background:radial-gradient(circle,var(--fg),transparent 85%)}.flash.shield{background:radial-gradient(circle,transparent 30%,var(--fg) 100%)}
@@ -94,7 +101,8 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 
 <section id="g-o" class="g on"><div id="st" style="display:flex;flex-direction:column;align-items:center;width:100%">
   <div class="row"><strong>対戦モード</strong>
-    <div class="dd" id="dd"><input type="hidden" id="mode" value="ai-easy"><button type="button" class="ddb" id="ddb">VS AI かんたん</button><ul class="ddl" id="ddl"></ul></div></div>
+    <div class="dd" id="dd"><input type="hidden" id="mode" value="ai-easy"><button type="button" class="ddb" id="ddb">VS AI かんたん</button><ul class="ddl" id="ddl"></ul></div>
+    <button type="button" class="tg" id="tg" role="switch" aria-checked="false"><span>特別ルール<small>ダブル後も必殺技OK</small></span><i></i></button></div>
   <div class="row info"><div>ターン <span id="tc">1</span></div><div>手番 <span id="tn">黒</span></div><div>● <span id="bc">2</span></div><div>○ <span id="wc">2</span></div></div>
   <div id="board" class="ob"></div>
   <div class="skills"><div id="p1" class="sc"><strong>黒の必殺技</strong><div id="b-sk"></div></div><div id="p2" class="sc"><strong id="p2t">白の必殺技</strong><div id="w-sk"></div></div></div>
@@ -125,6 +133,7 @@ $('tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;  document
 /* ================= オセロ ================= */
 (()=>{
 const N=8,EMPTY=0,BLACK=1,WHITE=2;
+let SPECIAL=false;
 const CD={meteor:2,steal:2,snipe:2,shield:3,double:4};
 const SKILLS=[['meteor','✦ メテオ'],['steal','⇄ スティール'],['snipe','◎ スナイプ'],['shield','◈ シールド'],['double','≫ ダブル']];
 const W=[[100,-20,10,5,5,10,-20,100],[-20,-50,-2,-2,-2,-2,-50,-20],[10,-2,1,1,1,1,-2,10],[5,-2,1,1,1,1,-2,5],[5,-2,1,1,1,1,-2,5],[10,-2,1,1,1,1,-2,10],[-20,-50,-2,-2,-2,-2,-50,-20],[100,-20,10,5,5,10,-20,100]];
@@ -145,7 +154,7 @@ function initGame(){
   meteorCount={[BLACK]:0,[WHITE]:0};
   $('result').classList.remove('show');
   $('p2t').innerText=$('mode').value==='pvp'?'白の必殺技':'AIの必殺技';
-  say('1〜2ターン目は必殺技を使えません（3ターン目から解禁）');render();
+  say('');render();
 }
 function flippable(row,col,player){
   if(board[row][col]!==EMPTY)return[];
@@ -160,7 +169,7 @@ function flippable(row,col,player){
 const hasMove=p=>{for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(flippable(r,c,p).length)return true;return false};
 function handleToggle(k){
   if(over||thinking||aiTurn())return;
-  if(turnCount<=2)return say('1〜2ターン目は必殺技を使えません');
+  if(turnCount<=4||(dbl&&!SPECIAL))return;
   if(cooldowns[cur][k]>0)return say(`クールダウン中です（あと ${cooldowns[cur][k]} ターン）`);
   if(k==='shield'&&countShields(cur)>=3)return say('シールドは盤上に3つまでです');
   if(activeSkill===k){activeSkill=null;say(dbl?'ダブル発動中。もう一度行動してください':'')}
@@ -168,7 +177,7 @@ function handleToggle(k){
   render();
 }
 function instant(k){
-  if(turnCount<=2){if(!aiTurn())say('1〜2ターン目は必殺技を使えません');return false}
+  if(turnCount<=4)return false;
   if(cooldowns[cur][k]>0){if(!aiTurn())say(`クールダウン中です（あと ${cooldowns[cur][k]} ターン）`);return false}
   activeSkill=null;
   if(k==='double'){if(dbl)return false;dbl=true;fx('double');cooldowns[cur].double=CD.double;say(`${name(cur)}：ダブル発動。連続で行動できます`);render();return true}
@@ -178,6 +187,7 @@ const warn=t=>{if(!aiTurn())say(t);return false};
 const cnt=p=>{let n=0;for(const r of board)for(const v of r)if(v===p)n++;return n};
 function act(row,col){
   const opp=cur===BLACK?WHITE:BLACK,p=name(cur);
+  if(activeSkill&&dbl&&!SPECIAL)activeSkill=null;
   if(activeSkill==='meteor'){
     if(board[row][col]===EMPTY)return warn('破壊する駒を選んでください');
     const sup=meteorCount[cur]>=5;
@@ -217,10 +227,96 @@ function aiSchedule(ms){
   if(!over&&aiTurn()){thinking=true;if(!dbl)say('AIが思考中…');render();aiTimer=setTimeout(()=>{thinking=false;aiTimer=null;aiMove()},ms)}
 }
 function aiSkill(k,r,c){activeSkill=k;const ok=act(r,c);if(!ok)activeSkill=null;return ok}
+
+/* ---- 強いAI（アルファベータ探索＋必殺技も候補に入れて評価） ---- */
+const ADJ={};[[0,0,[[0,1],[1,0],[1,1]]],[0,7,[[0,6],[1,7],[1,6]]],[7,0,[[7,1],[6,0],[6,1]]],[7,7,[[7,6],[6,7],[6,6]]]].forEach(([r,c,l])=>l.forEach(([a,b])=>ADJ[a*8+b]=[r,c]));
+let deadline=0;
+function flipsOn(b,sh,row,col,p){
+  const opp=3-p;let res=[];
+  for(const[dr,dc]of DIRS){let r=row+dr,c=col+dc,tmp=[];
+    while(r>=0&&r<N&&c>=0&&c<N&&b[r][c]===opp){if(sh[r][c]){tmp=[];break}tmp.push([r,c]);r+=dr;c+=dc}
+    if(r>=0&&r<N&&c>=0&&c<N&&b[r][c]===p)res=res.concat(tmp)}
+  return res;
+}
+function movesOn(b,sh,p){const o=[];for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(b[r][c]===EMPTY){const f=flipsOn(b,sh,r,c,p);if(f.length)o.push([r,c,f])}return o}
+function discDiff(b,p){let d=0;for(const r of b)for(const v of r)if(v)d+=v===p?1:-1;return d}
+function evalPos(b,sh,p){
+  let s=0,e=0;
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=b[r][c];if(!v){e++;continue}
+    let w=W[r][c];const a=ADJ[r*8+c];if(a&&b[a[0]][a[1]])w=4;if(sh[r][c])w+=6;s+=v===p?w:-w}
+  s+=7*(movesOn(b,sh,p).length-movesOn(b,sh,3-p).length);
+  if(e<=14)s+=(e<=8?12:5)*discDiff(b,p);
+  return s;
+}
+function nm(b,sh,p,d,al,be){
+  if(performance.now()>deadline)throw 0;
+  if(d<=0)return evalPos(b,sh,p);
+  const ms=movesOn(b,sh,p);
+  if(!ms.length){if(!movesOn(b,sh,3-p).length)return 1000*discDiff(b,p);return -nm(b,sh,3-p,d-1,-be,-al)}
+  ms.sort((x,y)=>W[y[0]][y[1]]-W[x[0]][x[1]]);
+  let best=-1e9;
+  for(const[r,c,f]of ms){const nb=b.map(x=>x.slice());nb[r][c]=p;for(const[a,z]of f)nb[a][z]=p;
+    const v=-nm(nb,sh,3-p,d-1,-be,-al);if(v>best)best=v;if(v>al)al=v;if(al>=be)break}
+  return best;
+}
+function aiCandidates(){
+  const P=WHITE,O=BLACK,L=[],oc=cnt(O);
+  for(const[r,c]of movesOn(board,shields,P))L.push({t:'move',r,c,pen:0});
+  if(turnCount>4&&!(dbl&&!SPECIAL)){
+    const ok=k=>cooldowns[P][k]===0;
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=board[r][c];
+      if(ok('meteor')&&v===O&&oc>1&&(meteorCount[P]>=5||!shields[r][c]))L.push({t:'meteor',r,c,pen:10});
+      if(ok('steal')&&v===O&&!shields[r][c]&&oc>1)L.push({t:'steal',r,c,pen:10});
+      if(ok('snipe')&&v===EMPTY)L.push({t:'snipe',r,c,pen:12});
+      if(ok('shield')&&v===P&&!shields[r][c]&&countShields(P)<3)L.push({t:'shield',r,c,pen:6-Math.max(0,W[r][c])*.5});
+    }
+  }
+  return L;
+}
+function applyA(a,p){
+  const nb=board.map(x=>x.slice());let ns=shields;
+  if(a.t==='move'){nb[a.r][a.c]=p;for(const[x,y]of flipsOn(board,shields,a.r,a.c,p))nb[x][y]=p}
+  else if(a.t==='meteor'){nb[a.r][a.c]=EMPTY;ns=shields.map(x=>x.slice());ns[a.r][a.c]=false}
+  else if(a.t==='shield'){ns=shields.map(x=>x.slice());ns[a.r][a.c]=true}
+  else nb[a.r][a.c]=p;
+  return[nb,ns];
+}
+function aiPick(){
+  const C=aiCandidates();if(!C.length)return null;
+  const sc=(a,d)=>{const[nb,ns]=applyA(a,WHITE);return -nm(nb,ns,BLACK,d,-1e9,1e9)-a.pen};
+  C.forEach(a=>a.s=-1e9);
+  deadline=performance.now()+800;
+  try{C.forEach(a=>a.s=sc(a,2))}catch(e){}
+  C.sort((a,b)=>b.s-a.s);
+  const top=C.slice(0,4);let best=top[0];
+  deadline=performance.now()+1400;
+  for(let d=3;d<=10;d++){
+    try{const R=top.map(a=>({a,s:sc(a,d)}));R.sort((x,y)=>y.s-x.s);best=R[0].a}catch(e){break}
+  }
+  return best;
+}
+function doubleWorth(){
+  deadline=performance.now()+700;
+  try{
+    const ms=movesOn(board,shields,WHITE);if(!ms.length)return false;
+    let bn=-1e9,bd=-1e9;
+    for(const[r,c,f]of ms){const nb=board.map(x=>x.slice());nb[r][c]=WHITE;for(const[a,z]of f)nb[a][z]=WHITE;
+      bn=Math.max(bn,-nm(nb,shields,BLACK,2,-1e9,1e9));bd=Math.max(bd,nm(nb,shields,WHITE,2,-1e9,1e9))}
+    return bd>bn+25;
+  }catch(e){return false}
+}
+function hardMove(){
+  if(turnCount>4&&cooldowns[WHITE].double===0&&!dbl&&hasMove(WHITE)&&doubleWorth()&&instant('double')){aiSchedule(450);return}
+  const a=aiPick();
+  if(!a){pass();return}
+  activeSkill=a.t==='move'?null:a.t;
+  if(!act(a.r,a.c)){activeSkill=null;pass()}
+}
 function aiMove(){
   if(over||!aiTurn())return;
   const mode=$('mode').value,opp=BLACK;
-  if(turnCount>2){
+  if(mode==='ai-hard'){hardMove();return}
+  if(turnCount>4&&!(dbl&&!SPECIAL)){
     if(mode==='ai-hard'&&cooldowns[WHITE].shield===0&&countShields(WHITE)<3)for(const[r,c]of CORNERS)if(board[r][c]===WHITE&&!shields[r][c]&&aiSkill('shield',r,c))return;
     if(mode!=='ai-easy'&&cooldowns[WHITE].steal===0)for(const[r,c]of CORNERS)if(board[r][c]===opp&&!shields[r][c]&&aiSkill('steal',r,c))return;
     if(mode!=='ai-easy'&&cooldowns[WHITE].meteor===0){const sup=meteorCount[WHITE]>=5;for(const[r,c]of CORNERS)if(board[r][c]===opp&&(sup||!shields[r][c])&&aiSkill('meteor',r,c))return}
@@ -234,7 +330,7 @@ function aiMove(){
         else{const j=mode==='ai-normal'?12:4;moves.forEach(x=>x.s=(mode==='ai-normal'?x.w+x.n:x.w*2+x.n)+Math.random()*j);moves.sort((a,b)=>b.s-a.s);m=moves[0]}
     activeSkill=null;act(m.r,m.c);return;
   }
-  if(turnCount>2&&cooldowns[WHITE].snipe===0&&mode!=='ai-easy'){
+  if(turnCount>4&&!(dbl&&!SPECIAL)&&cooldowns[WHITE].snipe===0&&mode!=='ai-easy'){
     for(const[r,c]of CORNERS)if(board[r][c]===EMPTY&&aiSkill('snipe',r,c))return;
     for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(board[r][c]===EMPTY&&aiSkill('snipe',r,c))return;
   }
@@ -267,14 +363,14 @@ function render(){
   prev=board.map(r=>r.slice());
   $('tc').innerText=turnCount;$('tn').innerText=name(cur);$('bc').innerText=b;$('wc').innerText=w;
   const pb=$('pass');
-  if(hints&&!canMove){pb.style.display='inline-block';if(!activeSkill)say(dbl?'ダブル中ですが置けるマスがありません。必殺技を使うかパスしてください':'置けるマスがありません。必殺技を使うかパスしてください')}else pb.style.display='none';
+  if(hints&&!canMove){pb.style.display='inline-block';if(!activeSkill){const sk=turnCount>4&&!(dbl&&!SPECIAL);say((dbl?'ダブル中ですが':'')+'置けるマスがありません。'+(sk?'必殺技を使うかパスしてください':'パスしてください'))}}else pb.style.display='none';
   $('p1').classList.toggle('turn',cur===BLACK&&!over);$('p2').classList.toggle('turn',cur===WHITE&&!over);
   const aiCtl=$('mode').value!=='pvp';
   for(const[pre,pl]of[['b',BLACK],['w',WHITE]])for(const[k]of SKILLS){
     const btn=$(`${pre}-${k}`),lab=$(`${pre}-cd-${k}`),mine=pl===cur,ai=pl===WHITE&&aiCtl;
     if(k==='meteor')btn.firstElementChild.innerText=meteorCount[pl]>=5?'✦ スーパーメテオ':`✦ メテオ ${meteorCount[pl]}/5`;
     const cd=cooldowns[pl][k]||0,max=k==='shield'&&countShields(pl)>=3;
-    btn.disabled=over||thinking||ai||!mine||turnCount<=2||cd>0||max;
+    btn.disabled=over||thinking||ai||!mine||turnCount<=4||cd>0||max||(dbl&&!SPECIAL&&k!=='double');
     btn.classList.toggle('on',mine&&!ai&&activeSkill===k);
     lab.innerText=cd>0?`CD ${cd}`:max?'MAX':'OK';
   }
@@ -287,6 +383,7 @@ function buildDD(){$('ddl').innerHTML=MODES.map(([v,t])=>`<li data-v="${v}" clas
 $('ddb').onclick=()=>$('ddl').classList.toggle('open');
 $('ddl').onclick=e=>{const li=e.target.closest('li');if(!li)return;$('mode').value=li.dataset.v;$('ddb').innerText=li.innerText;$('ddl').classList.remove('open');buildDD();initGame()};
 document.addEventListener('click',e=>{if(!e.target.closest('#dd'))$('ddl').classList.remove('open')});
+$('tg').onclick=()=>{SPECIAL=!SPECIAL;$('tg').setAttribute('aria-checked',SPECIAL);render()};
 $('pass').onclick=()=>{if(!over&&!thinking&&!aiTurn())pass()};
 $('reset').onclick=$('again').onclick=initGame;
 $('view').onclick=()=>$('result').classList.remove('show');
