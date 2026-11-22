@@ -7,8 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='w' cx='.32' cy='.28' r='.8'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23cfcfd4'/%3E%3C/radialGradient%3E%3ClinearGradient id='k' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233a3a40'/%3E%3Cstop offset='1' stop-color='%23000'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='%230d0d0f'/%3E%3Ccircle cx='25' cy='25' r='15' fill='url(%23w)'/%3E%3Ccircle cx='40' cy='40' r='15' fill='url(%23k)' stroke='%23f2f2f3' stroke-width='2.5'/%3E%3C/svg%3E">
 <style>
 :root{--bg:#f2f2f3;--fg:#111;--mute:#8a8a90;--card:rgba(255,255,255,.7);--line:rgba(0,0,0,.08);--cell:#e6e6e8;--cellh:#d9d9dc;--board:#fff;--hint:rgba(0,0,0,.22);color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#09090b;--fg:#f0f0f0;--mute:#8e8e96;--card:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);--cell:#18181b;--cellh:#232327;--board:#101013;--hint:rgba(255,255,255,.28)}}
-:root[data-theme="dark"]{--bg:#09090b;--fg:#f0f0f0;--mute:#8e8e96;--card:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);--cell:#18181b;--cellh:#232327;--board:#101013;--hint:rgba(255,255,255,.28)}
+@media (prefers-color-scheme:dark){:root{--bg:#09090b;--fg:#f0f0f0;--mute:#8e8e96;--card:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);--cell:#18181b;--cellh:#232327;--board:#101013;--hint:rgba(255,255,255,.28)}}
 html{scroll-padding-top:env(safe-area-inset-top,0px);overflow-y:scroll;scrollbar-gutter:stable}
 *{box-sizing:border-box;touch-action:manipulation}
 body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radial-gradient(120% 55% at 50% -10%,var(--cellh),transparent 70%);background-repeat:no-repeat;color:var(--fg);font-family:"Helvetica Neue","Hiragino Sans","Yu Gothic",sans-serif}
@@ -22,6 +21,9 @@ body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radia
 .row{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:12px;font-size:.9rem}
 .info{border:1px solid var(--line);border-radius:999px;padding:4px;background:var(--card);backdrop-filter:blur(12px)}
 .info div{padding:6px 14px;font-weight:600;font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:.78em;height:.78em;border-radius:50%;vertical-align:-.07em;margin-right:.32em}
+.dot.b{background:#111;box-shadow:0 0 0 1px rgba(255,255,255,.32)}
+.dot.w{background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.28)}
 .btn{padding:10px 26px;font:inherit;font-size:.9rem;font-weight:700;letter-spacing:.12em;cursor:pointer;background:var(--fg);color:var(--bg);border:1px solid var(--fg);border-radius:999px;transition:transform .15s}
 .btn:active{transform:scale(.95)}.btn.ghost{background:transparent;color:var(--mute);border-color:var(--line)}
 .msg{min-height:2.6em;max-width:520px;text-align:center;font-weight:500;color:var(--mute);font-size:.95rem;line-height:1.5;margin:6px 0}
@@ -47,6 +49,7 @@ body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radia
 @keyframes tg{from{box-shadow:inset 0 0 0 1.5px var(--hint)}to{box-shadow:inset 0 0 0 2.5px var(--fg),0 0 14px -2px var(--fg)}}
 .piece{width:80%;height:80%;border-radius:50%;position:relative;z-index:2}
 .piece.black{background:linear-gradient(145deg,#2c2c31,#050506);box-shadow:0 7px 10px -3px rgba(0,0,0,.55),inset 0 -3px 6px rgba(0,0,0,.5)}
+@media (prefers-color-scheme:dark){.piece.black{background:linear-gradient(145deg,#36363e,#0b0b0e);box-shadow:0 0 0 1px rgba(255,255,255,.22),0 7px 10px -3px rgba(0,0,0,.7),inset 0 1px 1.5px rgba(255,255,255,.18),inset 0 -3px 6px rgba(0,0,0,.5)}}
 .piece.white{background:radial-gradient(circle at 32% 28%,#fff,#d2d2d7 70%);box-shadow:0 0 0 1px rgba(128,128,128,.18),0 7px 10px -3px rgba(0,0,0,.45),inset 0 -3px 5px rgba(0,0,0,.18)}
 .piece.flip{animation:flip .45s ease}
 @keyframes flip{0%{transform:rotateY(90deg) scale(.6)}100%{transform:none}}
@@ -114,7 +117,7 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
   <div class="row" id="olp" style="display:none"><button type="button" class="btn" id="mk">部屋を作る</button><input id="rc" placeholder="部屋コード" maxlength="5" autocapitalize="off" autocomplete="off" style="flex:none;width:130px;padding:9px 14px;font-size:.95rem"><button type="button" class="btn ghost" id="jn">入る</button><button type="button" class="btn ghost" id="rj" style="display:none"></button></div>
   <div class="row" id="inv" style="display:none;flex-direction:column;gap:8px"><div class="inv-box"><span class="inv-l">部屋コード</span><b id="invc"></b><button type="button" class="btn ghost sm" id="cpc">コピー</button></div><div class="inv-box"><span class="inv-l">招待リンク</span><span id="invl" class="inv-url"></span><button type="button" class="btn ghost sm" id="cpl">コピー</button></div></div>
   <div class="ons" id="ons" style="display:none"></div>
-  <div class="row info"><div>ターン <span id="tc">1</span></div><div>手番 <span id="tn">黒</span></div><div>● <span id="bc">2</span></div><div>○ <span id="wc">2</span></div></div>
+  <div class="row info"><div>ターン <span id="tc">1</span></div><div>手番 <span id="tn">黒</span></div><div><span class="dot b"></span><span id="bc">2</span></div><div><span class="dot w"></span><span id="wc">2</span></div></div>
   <div id="board" class="ob"></div>
   <div class="skills" id="skl"><div id="p1" class="sc"><strong id="p1t">黒の必殺技</strong><div id="b-sk"></div></div><div id="p2" class="sc"><strong id="p2t">白の必殺技</strong><div id="w-sk"></div></div></div>
   <div id="msg" class="msg"></div>
@@ -306,16 +309,20 @@ function applyA(a,p){
   return[nb,ns];
 }
 function aiPick(){
-  const C=aiCandidates();if(!C.length)return null;
+  const C=aiCandidates();if(C.length<=1)return C[0]||null;
   const sc=(a,d)=>{const[nb,ns]=applyA(a,AIC);return -nm(nb,ns,(3-AIC),d,-1e9,1e9)-a.pen};
-  C.forEach(a=>a.s=-1e9);
-  deadline=performance.now()+800;
-  try{C.forEach(a=>a.s=sc(a,2))}catch(e){}
+  deadline=Infinity;
+  C.forEach(a=>a.s=sc(a,0));
   C.sort((a,b)=>b.s-a.s);
-  const top=C.slice(0,4);let best=top[0];
+  let pool=C.slice(0,16),best=pool[0];
   deadline=performance.now()+1400;
-  for(let d=3;d<=10;d++){
-    try{const R=top.map(a=>({a,s:sc(a,d)}));R.sort((x,y)=>y.s-x.s);best=R[0].a}catch(e){break}
+  for(let d=1;d<=10;d++){
+    try{
+      const R=pool.map(a=>({a,s:sc(a,d)}));
+      R.sort((x,y)=>y.s-x.s);
+      best=R[0].a;
+      pool=R.slice(0,d===1?6:4).map(x=>x.a);
+    }catch(e){break}
   }
   return best;
 }
@@ -329,20 +336,19 @@ function aiMove(){
   if(over||!aiTurn())return;
   const mode=$('mode').value,opp=(3-AIC);
   if(mode==='ai-hard'){hardMove();return}
-  if(SKILLS_ON){
-    if(mode==='ai-hard'&&cooldowns[AIC].shield===0&&countShields(AIC)<3)for(const[r,c]of CORNERS)if(board[r][c]===AIC&&!shields[r][c]&&aiSkill('shield',r,c))return;
-    if(mode!=='ai-easy'&&cooldowns[AIC].steal===0)for(const[r,c]of CORNERS)if(board[r][c]===opp&&!shields[r][c]&&aiSkill('steal',r,c))return;
-    if(mode!=='ai-easy'&&cooldowns[AIC].meteor===0){const sup=meteorCount[AIC]>=5;for(const[r,c]of CORNERS)if(board[r][c]===opp&&(sup||!shields[r][c])&&aiSkill('meteor',r,c))return}
+  if(SKILLS_ON&&mode==='ai-normal'){
+    if(cooldowns[AIC].steal===0)for(const[r,c]of CORNERS)if(board[r][c]===opp&&!shields[r][c]&&aiSkill('steal',r,c))return;
+    if(cooldowns[AIC].meteor===0){const sup=meteorCount[AIC]>=5;for(const[r,c]of CORNERS)if(board[r][c]===opp&&(sup||!shields[r][c])&&aiSkill('meteor',r,c))return}
   }
   const moves=[];
   for(let r=0;r<N;r++)for(let c=0;c<N;c++){const f=flippable(r,c,AIC);if(f.length)moves.push({r,c,n:f.length,w:W[r][c]})}
   if(moves.length){
     let m;
     if(mode==='ai-easy')m=moves[Math.floor(Math.random()*moves.length)];
-        else{const j=mode==='ai-normal'?12:4;moves.forEach(x=>x.s=(mode==='ai-normal'?x.w+x.n:x.w*2+x.n)+Math.random()*j);moves.sort((a,b)=>b.s-a.s);m=moves[0]}
+    else{moves.forEach(x=>x.s=x.w+x.n+Math.random()*12);moves.sort((a,b)=>b.s-a.s);m=moves[0]}
     activeSkill=null;act(m.r,m.c);return;
   }
-  if(SKILLS_ON&&cooldowns[AIC].snipe===0&&mode!=='ai-easy'){
+  if(SKILLS_ON&&cooldowns[AIC].snipe===0&&mode==='ai-normal'){
     for(const[r,c]of CORNERS)if(board[r][c]===EMPTY&&aiSkill('snipe',r,c))return;
     for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(board[r][c]===EMPTY&&aiSkill('snipe',r,c))return;
   }
@@ -464,7 +470,7 @@ async function joinRoom(raw){
 function count(){let b=0,w=0,e=0;for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=board[r][c];v===BLACK?b++:v===WHITE?w++:e++}return{b,w,e}}
 function showResult(){
   const{b,w}=count(),t=b>w?'黒の勝利':w>b?'白の勝利':'引き分け';
-  say(`ゲーム終了：${t}（${b} 対 ${w}）`);$('rt').innerText=t;$('rs').innerText=`● ${b}  /  ○ ${w}`;
+  say(`ゲーム終了：${t}（${b} 対 ${w}）`);$('rt').innerText=t;$('rs').innerHTML=`<span class="dot b"></span>${b} &nbsp;/&nbsp; <span class="dot w"></span>${w}`;
   $('result').classList.add('show');$('again').style.display=ONLINE&&conn&&!isHost?'none':'';
 }
 function gameOver(){
@@ -485,7 +491,7 @@ function render(){
       else if(activeSkill==='shield'&&v===cur&&!shields[r][c])cell.classList.add('t');
       else if(!activeSkill&&v===EMPTY&&flippable(r,c,cur).length)cell.classList.add('valid');
     }
-    cell.addEventListener('click',()=>{if(!over&&!thinking&&!locked()){const k=activeSkill;if(act(r,c))pushSnap()}});
+    cell.addEventListener('click',()=>{if(!over&&!thinking&&!locked()){if(act(r,c))pushSnap()}});
     if(v!==EMPTY){const p=document.createElement('div');p.className='piece '+(v===BLACK?'black':'white');if(shields[r][c])p.classList.add('sh');if(prev&&prev[r][c]!==v)p.classList.add('flip');cell.appendChild(p)}
     el.appendChild(cell);
   }
@@ -536,7 +542,8 @@ const MAX=100000000;let target=Math.floor(Math.random()*MAX)+1,attempts=0;
 const say=t=>$('message').textContent=t;
 function orb(t,up){const o=$('orb');o.textContent=t;o.classList.toggle('up',up);o.classList.remove('pop');void o.offsetWidth;o.classList.add('pop')}
 function check(){
-  const v=parseInt($('guess').value);attempts++;$('att').textContent=attempts;shake($('kcard'));
+  const raw=$('guess').value.trim(),v=/^-?\d+$/.test(raw)?Number(raw):NaN;
+  attempts++;$('att').textContent=attempts;shake($('kcard'));
   if(isNaN(v)){say('数字も入れられねえのかよ脳死');flash('hard');orb('?',false);return}
   if(v<1||v>MAX){say('1から1億って読めねぇの？読解力ゼロか？');flash('hard');orb('×',false);return}
   if(v<target){say('もっと上だよ雑魚ｗｗ');flash();orb('▲',true)}
