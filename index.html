@@ -369,18 +369,25 @@ function recv(m){
   }else ok=false;
   if(!ok||hash()!==m.h){activeSkill=null;resync()}
 }
+function netErr(e){
+  const t=e&&e.type;
+  if(['network','server-error','socket-error','socket-closed'].includes(t))return '通信サーバーにつながりません。しばらくしてからもう一度試してください（'+t+'）';
+  if(t==='browser-incompatible')return 'このブラウザは対応していません';
+  return '接続エラー：'+t;
+}
 function makeRoom(){
   closeNet();const g=gen;
   if(typeof Peer==='undefined')return say('通信ライブラリを読み込めませんでした');
   const code=Array.from({length:5},()=>'abcdefghjkmnpqrstuvwxyz23456789'[Math.random()*31|0]).join('');
   peer=new Peer('oth-'+code);
+  peer.on('disconnected',()=>{if(g===gen)try{peer.reconnect()}catch(e){}});
   peer.on('open',()=>{if(g!==gen)return;const url=location.href.split('#')[0]+'#'+code;$('invc').textContent=code;$('invl').textContent=url;$('inv').style.display='flex';say('相手を待っています…')});
   peer.on('connection',c=>{
-    if(g!==gen)return;if(conn){c.close();return}
-    c.on('data',m=>{if(g===gen)recv(m)});c.on('close',()=>lost(g));
+    if(g!==gen)return;if(conn&&conn.open){c.close();return}
+    c.on('data',m=>{if(g===gen)recv(m)});c.on('close',()=>lost(g));c.on('error',()=>lost(g));
     c.on('open',()=>{if(g!==gen)return;conn=c;isHost=true;$('inv').style.display='none';initGame()});
   });
-  peer.on('error',e=>{if(g!==gen)return;if(e.type==='unavailable-id')makeRoom();else say('接続エラー：'+e.type)});
+  peer.on('error',e=>{if(g!==gen)return;if(e.type==='unavailable-id')makeRoom();else say(netErr(e))});
 }
 function joinRoom(raw){
   const code=(raw||'').trim().toLowerCase();
@@ -389,14 +396,15 @@ function joinRoom(raw){
   if(typeof Peer==='undefined')return say('通信ライブラリを読み込めませんでした');
   say('接続中…');
   peer=new Peer();
+  peer.on('disconnected',()=>{if(g===gen)try{peer.reconnect()}catch(e){}});
   peer.on('open',()=>{
     if(g!==gen)return;
     const c=peer.connect('oth-'+code,{reliable:true});
-    c.on('data',m=>{if(g===gen)recv(m)});c.on('close',()=>lost(g));
+    c.on('data',m=>{if(g===gen)recv(m)});c.on('close',()=>lost(g));c.on('error',()=>lost(g));
     c.on('open',()=>{if(g!==gen)return;conn=c;isHost=false;$('olp').style.display='none';say('接続しました。ゲーム開始を待っています…');render()});
   });
-  peer.on('error',e=>{if(g===gen)say(e.type==='peer-unavailable'?'その部屋コードの部屋が見つかりません':'接続エラー：'+e.type)});
-  setTimeout(()=>{if(g===gen&&!conn)say('つながりませんでした。部屋コードやネットワークを確認してください')},15000);
+  peer.on('error',e=>{if(g===gen)say(e.type==='peer-unavailable'?'その部屋コードの部屋が見つかりません':netErr(e))});
+  setTimeout(()=>{if(g===gen&&!conn)say('つながりませんでした。部屋コードを確かめるか、少し待ってからもう一度試してください（通信サーバーの混雑や、ネットワークの制限が原因のことがあります）')},15000);
 }
 function count(){let b=0,w=0,e=0;for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=board[r][c];v===BLACK?b++:v===WHITE?w++:e++}return{b,w,e}}
 function showResult(){
