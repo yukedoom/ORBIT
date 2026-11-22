@@ -122,7 +122,6 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 .inv-l{color:var(--mute);font-size:.7rem;letter-spacing:.1em;white-space:nowrap}
 .inv-box b{flex:1;text-align:center}
 #invc{font-size:1.15rem;letter-spacing:.3em;padding-left:.3em}
-.inv-url{flex:1;min-width:0;font-size:.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btn.sm{padding:7px 14px;font-size:.75rem;letter-spacing:.05em;white-space:nowrap}
 .ons{font-size:.82rem;color:var(--mute);margin-bottom:10px;text-align:center;line-height:1.4}
 .ondot{display:block;width:.72em;height:.72em;border-radius:50%;transition:background .2s}
@@ -174,7 +173,6 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
       </div>
       <div class="row" id="inv" style="display:none;flex-direction:column;gap:8px">
         <div class="inv-box"><span class="inv-l">部屋コード</span><b id="invc"></b><button type="button" class="btn ghost sm" id="cpc">コピー</button></div>
-        <div class="inv-box"><span class="inv-l">招待リンク</span><span id="invl" class="inv-url"></span><button type="button" class="btn ghost sm" id="cpl">コピー</button></div>
         <button type="button" class="btn ghost sm" id="cancelWait">待機をやめる（部屋を破棄）</button>
       </div>
       <div class="ons" id="ons" style="display:none"></div>
@@ -435,7 +433,6 @@ function aiMove(){
 
 /* ---- オンライン対戦（Firebase Realtime Database） ---- */
 let db=null,uid='',roomRef=null,localN=0,watchers=[],chatCooldown=0;
-function clearHash(){if(location.hash)try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
 function titles(){
   let a='黒の必殺技',b='白の必殺技';
   if(isAI()){a=AIC===BLACK?'AIの必殺技':'あなたの必殺技';b=AIC===WHITE?'AIの必殺技':'あなたの必殺技'}
@@ -557,7 +554,7 @@ function closeNet(drop){
       }
     }catch(e){}
   }
-  if(drop){try{localStorage.removeItem('othRoom')}catch(e){}clearHash()}
+  if(drop){try{localStorage.removeItem('othRoom')}catch(e){}}
   roomRef=null;conn=null;isHost=false;MYC=0;localN=0;oppOnline=false;clearChatUI();
   $('inv').style.display='none';setOns('');
   syncOlUI();syncTg();updRj();
@@ -609,11 +606,11 @@ function attach(code,role,active){
   }
 }
 function showInvite(code){
-  $('invc').textContent=code;$('invl').textContent=location.href.split('#')[0]+'#'+code;
+  $('invc').textContent=code;
   $('inv').style.display='flex';syncOlUI();syncTg();setOns('相手を待っています…');
 }
 async function makeRoom(){
-  if(roomRef)closeNet(true);else clearHash();
+  if(roomRef)closeNet(true);
   const g=gen;
   try{await fbInit()}catch(e){return setOns(netErr(e))}
   if(g!==gen)return;
@@ -638,27 +635,19 @@ async function joinRoom(raw){
     if(g!==gen)return;
     if(!v||!v.host){
       try{if(localStorage.getItem('othRoom')===code)localStorage.removeItem('othRoom')}catch(e){}
-      if(location.hash.slice(1).toLowerCase()===code)clearHash();
       updRj();return setOns('その部屋コードの部屋が見つかりません');
     }
     if(v.ts&&Date.now()-v.ts>ROOM_TTL){
       try{if(localStorage.getItem('othRoom')===code)localStorage.removeItem('othRoom')}catch(e){}
-      if(location.hash.slice(1).toLowerCase()===code)clearHash();
       updRj();r.remove().catch(()=>{});
       return setOns('この部屋は有効期限（24時間）を過ぎたため破棄されました');
     }
     if(v.ver!==VER)return setOns('相手とページのバージョンが違います。両方の画面を再読み込みしてください');
     if(v.host===uid){attach(code,'host',!!v.guest);if(!v.guest)showInvite(code);return}
-    if(v.guest&&v.guest!==uid){
-      if(location.hash.slice(1).toLowerCase()===code)clearHash();
-      return setOns('この部屋は満員です');
-    }
+    if(v.guest&&v.guest!==uid)return setOns('この部屋は満員です');
     if(!v.guest){
       const t=await r.child('guest').transaction(c=>c===null?uid:(c===uid?c:undefined));
-      if(!t.committed){
-        if(location.hash.slice(1).toLowerCase()===code)clearHash();
-        return setOns('この部屋は満員です');
-      }
+      if(!t.committed)return setOns('この部屋は満員です');
     }
     r.child('ts').set(firebase.database.ServerValue.TIMESTAMP).catch(()=>{});
     if(g!==gen)return;
@@ -669,7 +658,7 @@ async function discardSavedRoom(){
   let code='';try{code=localStorage.getItem('othRoom')||''}catch(e){}
   if(!code)return;
   try{localStorage.removeItem('othRoom')}catch(e){}
-  clearHash();updRj();
+  updRj();
   if(!/^[a-z0-9]{5}$/.test(code))return;
   try{
     await fbInit();
@@ -756,7 +745,6 @@ async function copyText(t,b){
   const o=b.textContent;b.textContent=ok?'✓ コピー済み':'コピー不可';setTimeout(()=>b.textContent=o,1500);
 }
 $('cpc').onclick=e=>copyText($('invc').textContent,e.currentTarget);
-$('cpl').onclick=e=>copyText($('invl').textContent,e.currentTarget);
 $('mk').onclick=makeRoom;$('rj').onclick=()=>{let c='';try{c=localStorage.getItem('othRoom')||''}catch(e){}joinRoom(c)};$('dr').onclick=discardSavedRoom;$('jn').onclick=()=>joinRoom($('rc').value);
 $('leave').onclick=$('cancelWait').onclick=leaveRoom;
 $('chatSend').onclick=sendChat;
@@ -764,9 +752,7 @@ $('chatIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing)se
 $('pass').onclick=()=>{if(!over&&!thinking&&!locked()){pass();pushSnap()}};
 $('reset').onclick=$('again').onclick=()=>{if(!canReset())return;initGame()};
 $('view').onclick=()=>$('result').classList.remove('show');
-const h0=location.hash.slice(1);
-if(/^[a-z0-9]{5}$/.test(h0)){$('mode').value='online';buildDD();initGame();joinRoom(h0)}
-else{$('mode').value='ai-easy';buildDD();initGame()}
+$('mode').value='ai-easy';buildDD();initGame();
 })();
 
 /* ================= 数当て ================= */
