@@ -101,7 +101,6 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 .ddb{padding-top:0;padding-bottom:0}
 .tg{display:inline-flex;align-items:center;gap:12px;font:inherit;font-size:.9rem;font-weight:600;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:0 9px 0 18px;cursor:pointer;transition:opacity .2s}
 .tg:disabled{opacity:.45;cursor:not-allowed}
-.tg small{margin-left:8px;color:var(--mute);font-weight:500;font-size:.75rem}
 .tg i{display:block;flex:none;width:42px;height:26px;border-radius:999px;background:transparent;box-shadow:inset 0 0 0 1.5px var(--mute);position:relative;transition:background .2s,box-shadow .2s}
 .tg i::after{content:"";position:absolute;left:4px;top:4px;width:18px;height:18px;border-radius:50%;background:var(--mute);transition:transform .2s,background .2s}
 .tg[aria-checked=true] i{background:var(--fg);box-shadow:none}
@@ -143,8 +142,8 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 
 <section id="g-o" class="g on"><div id="st" style="display:flex;flex-direction:column;align-items:center;width:100%">
   <div class="row o-top">
-    <div class="dd" id="dd"><input type="hidden" id="mode" value="ai-easy"><button type="button" class="ddb" id="ddb">VS AI かんたん</button><ul class="ddl" id="ddl"></ul></div>
-    <button type="button" class="tg" id="tg" role="switch" aria-checked="true"><span>特別ルール<small id="tgs">必殺技あり</small></span><i></i></button>
+    <div class="dd" id="dd"><input type="hidden" id="mode" value="ai-easy" autocomplete="off"><button type="button" class="ddb" id="ddb">VS AI かんたん</button><ul class="ddl" id="ddl"></ul></div>
+    <button type="button" class="tg" id="tg" role="switch" aria-checked="true"><span id="tgs">必殺技あり</span><i></i></button>
   </div>
   <div class="o-work">
     <div class="o-left">
@@ -651,9 +650,13 @@ for(const[p,id]of[['b','b-sk'],['w','w-sk']]){
   $(id).innerHTML=SKILLS.map(([k,l])=>`<button class="sk" id="${p}-${k}"><span>${l}</span><span id="${p}-cd-${k}"></span></button>`).join('');
   SKILLS.forEach(([k])=>$(`${p}-${k}`).onclick=()=>{if(over||thinking||locked())return;handleToggle(k)});
 }
-function buildDD(){$('ddl').innerHTML=MODES.map(([v,t])=>`<li data-v="${v}" class="${v===$('mode').value?'sel':''}">${t}</li>`).join('')}
+function buildDD(){
+  const curM=MODES.find(m=>m[0]===$('mode').value)||MODES[1];
+  $('mode').value=curM[0];$('ddb').innerText=curM[1];
+  $('ddl').innerHTML=MODES.map(([v,t])=>`<li data-v="${v}" class="${v===curM[0]?'sel':''}">${t}</li>`).join('');
+}
 $('ddb').onclick=()=>$('ddl').classList.toggle('open');
-$('ddl').onclick=e=>{const li=e.target.closest('li');if(!li)return;$('mode').value=li.dataset.v;$('ddb').innerText=li.innerText;$('ddl').classList.remove('open');buildDD();closeNet(!!roomRef);initGame()};
+$('ddl').onclick=e=>{const li=e.target.closest('li');if(!li)return;$('mode').value=li.dataset.v;$('ddl').classList.remove('open');buildDD();closeNet(!!roomRef);initGame()};
 document.addEventListener('click',e=>{if(!e.target.closest('#dd'))$('ddl').classList.remove('open')});
 $('tg').onclick=()=>{if(!canTg())return;SKILLS_ON=!SKILLS_ON;activeSkill=null;syncTg();render();pushSnap()};
 $('start').onclick=()=>{if(!waitStart||over)return;waitStart=false;render();aiSchedule(350)};
@@ -670,9 +673,9 @@ $('leave').onclick=$('cancelWait').onclick=leaveRoom;
 $('pass').onclick=()=>{if(!over&&!thinking&&!locked()){pass();pushSnap()}};
 $('reset').onclick=$('again').onclick=()=>{if(ONLINE&&conn&&!isHost)return;initGame()};
 $('view').onclick=()=>$('result').classList.remove('show');
-buildDD();
 const h0=location.hash.slice(1);
-if(/^[a-z0-9]{5}$/.test(h0)){$('mode').value='online';$('ddb').innerText='オンライン対戦';buildDD();initGame();joinRoom(h0)}else initGame();
+if(/^[a-z0-9]{5}$/.test(h0)){$('mode').value='online';buildDD();initGame();joinRoom(h0)}
+else{$('mode').value='ai-easy';buildDD();initGame()}
 })();
 
 /* ================= 数当て ================= */
