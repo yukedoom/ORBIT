@@ -87,6 +87,16 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 .tg i::after{content:"";position:absolute;left:4px;top:4px;width:18px;height:18px;border-radius:50%;background:var(--mute);transition:transform .2s,background .2s}
 .tg[aria-checked=true] i{background:var(--fg);box-shadow:none}
 .tg[aria-checked=true] i::after{transform:translateX(16px);background:var(--bg)}
+/* online panel */
+.ol-card{display:none;flex-direction:column;gap:10px;width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:14px;margin-bottom:14px;backdrop-filter:blur(12px)}
+.ol-mk{width:100%}
+.ol-join{display:flex;align-items:center;gap:6px;background:var(--cell);border:1px solid var(--line);border-radius:999px;padding:4px 4px 4px 12px;transition:box-shadow .15s}
+.ol-join:focus-within{box-shadow:0 0 0 2px var(--fg)}
+.ol-join input{border:0;background:transparent;padding:6px 4px;font-size:.92rem;text-align:left;box-shadow:none}
+.ol-join input:focus{box-shadow:none}
+.ol-prev{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-top:10px;font-size:.82rem;color:var(--mute)}
+.ol-prev-l b{color:var(--fg);letter-spacing:.16em;margin-left:4px}
+.ol-prev-b{display:flex;gap:6px}
 .inv-box{display:flex;align-items:center;gap:10px;max-width:100%;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 18px;backdrop-filter:blur(12px)}
 .inv-l{color:var(--mute);font-size:.7rem;letter-spacing:.1em;white-space:nowrap}
 #invc{font-size:1.15rem;letter-spacing:.3em;padding-left:.3em}
@@ -111,17 +121,26 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 <nav class="tabs" id="tabs"><button data-g="o" class="on">オセロ</button><button data-g="k">数当て</button></nav>
 
 <section id="g-o" class="g on"><div id="st" style="display:flex;flex-direction:column;align-items:center;width:100%">
-  <div class="row"><strong>対戦モード</strong>
+  <div class="row">
     <div class="dd" id="dd"><input type="hidden" id="mode" value="ai-easy"><button type="button" class="ddb" id="ddb">VS AI かんたん</button><ul class="ddl" id="ddl"></ul></div>
-    <button type="button" class="tg" id="tg" role="switch" aria-checked="true"><span>特別ルール<small id="tgs">必殺技あり</small></span><i></i></button></div>
-  <div class="row" id="olp" style="display:none"><button type="button" class="btn" id="mk">部屋を作る</button><input id="rc" placeholder="部屋コード" maxlength="5" autocapitalize="off" autocomplete="off" style="flex:none;width:130px;padding:9px 14px;font-size:.95rem"><button type="button" class="btn ghost" id="jn">入る</button><button type="button" class="btn ghost" id="rj" style="display:none"></button><button type="button" class="btn ghost" id="dr" style="display:none">破棄</button></div>
-  <div class="row" id="inv" style="display:none;flex-direction:column;gap:8px"><div class="inv-box"><span class="inv-l">部屋コード</span><b id="invc"></b><button type="button" class="btn ghost sm" id="cpc">コピー</button></div><div class="inv-box"><span class="inv-l">招待リンク</span><span id="invl" class="inv-url"></span><button type="button" class="btn ghost sm" id="cpl">コピー</button></div></div>
+    <button type="button" class="tg" id="tg" role="switch" aria-checked="true"><span>特別ルール<small id="tgs">必殺技あり</small></span><i></i></button>
+  </div>
+  <div class="ol-card" id="olp">
+    <button type="button" class="btn ol-mk" id="mk">部屋を作る</button>
+    <div class="ol-join"><input id="rc" placeholder="部屋コード（5文字）" maxlength="5" autocapitalize="off" autocomplete="off"><button type="button" class="btn sm" id="jn">入る</button></div>
+    <div class="ol-prev" id="rjw" style="display:none"><span class="ol-prev-l">前回の部屋<b id="rjc"></b></span><span class="ol-prev-b"><button type="button" class="btn sm" id="rj">戻る</button><button type="button" class="btn ghost sm" id="dr">破棄</button></span></div>
+  </div>
+  <div class="row" id="inv" style="display:none;flex-direction:column;gap:8px;margin-bottom:14px">
+    <div class="inv-box"><span class="inv-l">部屋コード</span><b id="invc"></b><button type="button" class="btn ghost sm" id="cpc">コピー</button></div>
+    <div class="inv-box"><span class="inv-l">招待リンク</span><span id="invl" class="inv-url"></span><button type="button" class="btn ghost sm" id="cpl">コピー</button></div>
+    <button type="button" class="btn ghost sm" id="cancelWait">待機をやめる（部屋を破棄）</button>
+  </div>
   <div class="ons" id="ons" style="display:none"></div>
   <div class="row info"><div>ターン <span id="tc">1</span></div><div>手番 <span id="tn">黒</span></div><div><span class="dot b"></span><span id="bc">2</span></div><div><span class="dot w"></span><span id="wc">2</span></div></div>
   <div id="board" class="ob"></div>
   <div class="skills" id="skl"><div id="p1" class="sc"><strong id="p1t">黒の必殺技</strong><div id="b-sk"></div></div><div id="p2" class="sc"><strong id="p2t">白の必殺技</strong><div id="w-sk"></div></div></div>
   <div id="msg" class="msg"></div>
-  <div class="row"><button id="pass" class="btn ghost">パス</button><button id="reset" class="btn">リセット</button><button id="leave" class="btn ghost" style="display:none">部屋を破棄</button></div>
+  <div class="row"><button id="pass" class="btn ghost">パス</button><button id="reset" class="btn">リセット</button><button id="leave" class="btn ghost sm" style="display:none">部屋を破棄</button></div>
 </div></section>
 
 <section id="g-k" class="g"><div class="card" id="kcard">
@@ -364,8 +383,8 @@ function titles(){
 const syncTg=()=>{$('tg').setAttribute('aria-checked',SKILLS_ON);$('tgs').textContent=SKILLS_ON?'必殺技あり':'必殺技なし'};
 function syncOlUI(){
   $('olp').style.display=ONLINE&&!roomRef?'flex':'none';
-  $('reset').style.display=ONLINE&&conn&&!isHost?'none':'';
-  const lv=$('leave');lv.style.display=ONLINE&&roomRef?'':'none';lv.textContent=isHost?'部屋を破棄':'退室';
+  $('reset').style.display=ONLINE&&(!conn||!isHost)?'none':'';
+  const lv=$('leave');lv.style.display=ONLINE&&conn?'':'none';lv.textContent=isHost?'部屋を破棄':'退室';
 }
 function netErr(e){
   const c=(e&&(e.code||e.message))||String(e);
@@ -386,9 +405,9 @@ async function fbInit(){
 function watch(ref,ev,fn){ref.on(ev,fn);watchers.push(()=>ref.off(ev,fn))}
 function updRj(){
   let c='';try{c=localStorage.getItem('othRoom')||''}catch(e){}
-  const show=ONLINE&&!roomRef&&!!c;
-  const b=$('rj');b.style.display=show?'':'none';b.textContent='前回の部屋に戻る（'+c+'）';
-  $('dr').style.display=show?'':'none';
+  const show=ONLINE&&!roomRef&&/^[a-z0-9]{5}$/.test(c);
+  $('rjw').style.display=show?'flex':'none';
+  if(show)$('rjc').textContent=c;
 }
 function pushSnap(extra){
   if(!(ONLINE&&roomRef&&conn&&db))return;
@@ -596,7 +615,7 @@ async function copyText(t,b){
 $('cpc').onclick=e=>copyText($('invc').textContent,e.currentTarget);
 $('cpl').onclick=e=>copyText($('invl').textContent,e.currentTarget);
 $('mk').onclick=makeRoom;$('rj').onclick=()=>{let c='';try{c=localStorage.getItem('othRoom')||''}catch(e){}joinRoom(c)};$('dr').onclick=discardSavedRoom;$('jn').onclick=()=>joinRoom($('rc').value);
-$('leave').onclick=leaveRoom;
+$('leave').onclick=$('cancelWait').onclick=leaveRoom;
 $('pass').onclick=()=>{if(!over&&!thinking&&!locked()){pass();pushSnap()}};
 $('reset').onclick=$('again').onclick=()=>{if(ONLINE&&conn&&!isHost)return;initGame()};
 $('view').onclick=()=>$('result').classList.remove('show');
