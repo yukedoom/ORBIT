@@ -42,7 +42,7 @@ body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radia
 .o-work{display:flex;flex-direction:column;align-items:center;width:100%}
 .o-left,.o-right{display:contents}
 @media (max-width:879px){
-  #olp,#inv,#ons{order:1}.info{order:2}#board{order:3}#skl{order:4}.o-act{order:5}
+  #olp,#inv,#ons{order:1}.info{order:2}#board{order:3}#skl{order:4}.o-act{order:5}.chat-box{order:6}
   .o-act{margin-top:8px}
 }
 @media (min-width:880px){
@@ -53,7 +53,7 @@ body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radia
   .o-left{display:flex;flex-direction:column;align-items:center;min-width:0}
   .o-right{display:flex;flex-direction:column;align-items:stretch;gap:12px;min-width:0}
   .o-right>*{min-width:0}
-  .o-right>.row,.o-right>.ol-card,.o-right>.skills{margin:0;max-width:none;width:100%}
+  .o-right>.row,.o-right>.ol-card,.o-right>.skills,.o-right>.chat-box{margin:0;max-width:none;width:100%}
   .o-right .info{justify-content:space-around}
   .o-right .ons{margin:0}
   .o-left .ob{grid-template-columns:repeat(8,52px);grid-template-rows:repeat(8,52px)}
@@ -109,10 +109,10 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 /* online panel */
 .ol-card{display:none;flex-direction:column;gap:10px;width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:14px;margin-bottom:14px;backdrop-filter:blur(12px)}
 .ol-mk{width:100%}
-.ol-join{display:flex;align-items:center;gap:6px;background:var(--cell);border:1px solid var(--line);border-radius:999px;padding:4px 4px 4px 12px;transition:box-shadow .15s}
-.ol-join:focus-within{box-shadow:0 0 0 2px var(--fg)}
-.ol-join input{border:0;background:transparent;padding:6px 4px;font-size:.92rem;text-align:left;box-shadow:none}
-.ol-join input:focus{box-shadow:none}
+.ol-join,.chat-form{display:flex;align-items:center;gap:6px;background:var(--cell);border:1px solid var(--line);border-radius:999px;padding:4px 4px 4px 12px;transition:box-shadow .15s}
+.ol-join:focus-within,.chat-form:focus-within{box-shadow:0 0 0 2px var(--fg)}
+.ol-join input,.chat-form input{border:0;background:transparent;padding:6px 4px;font-size:.9rem;text-align:left;box-shadow:none}
+.ol-join input:focus,.chat-form input:focus{box-shadow:none}
 .ol-prev{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-top:10px;font-size:.82rem;color:var(--mute)}
 .ol-prev-l b{color:var(--fg);letter-spacing:.16em;margin-left:6px}
 .ol-prev-b{display:flex;gap:6px}
@@ -127,6 +127,14 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 .ondot{display:inline-block;width:.62em;height:.62em;border-radius:50%;vertical-align:.04em;margin-right:.45em}
 .ondot.on{background:#22c55e;box-shadow:0 0 0 2px rgba(34,197,94,.2)}
 .ondot.off{background:var(--mute)}
+/* chat */
+.chat-box{display:none;flex-direction:column;gap:8px;width:100%;max-width:520px;margin-top:4px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:10px;backdrop-filter:blur(12px)}
+.chat-log{display:none;flex-direction:column;gap:5px;padding:2px 4px;font-size:.8rem;line-height:1.4}
+.chat-m{display:flex;align-items:baseline;gap:7px;min-width:0;animation:chatIn .2s ease}
+.chat-m span{flex:none;font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--line);color:var(--mute)}
+.chat-m.op span{background:var(--fg);color:var(--bg)}
+.chat-m b{font-weight:500;color:var(--fg);word-break:break-word}
+@keyframes chatIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 /* fx */
 .flash{position:fixed;inset:0;pointer-events:none;z-index:50;animation:fl .5s ease-out forwards;background:radial-gradient(circle,var(--fg),transparent 75%)}
 .flash.hard{background:var(--fg)}.flash.meteor{background:radial-gradient(circle,var(--fg),transparent 85%)}.flash.shield{background:radial-gradient(circle,transparent 30%,var(--fg) 100%)}
@@ -168,6 +176,10 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
       <div class="row info"><div>ターン <span id="tc">1</span></div><div>手番 <span id="tn">黒</span></div><div><span class="dot b"></span><span id="bc">2</span></div><div><span class="dot w"></span><span id="wc">2</span></div></div>
       <div class="skills" id="skl"><div id="p1" class="sc"><strong id="p1t">黒の必殺技</strong><div id="b-sk"></div></div><div id="p2" class="sc"><strong id="p2t">白の必殺技</strong><div id="w-sk"></div></div></div>
       <div class="row o-act"><button id="start" class="btn" style="display:none">対局開始</button><button id="pass" class="btn ghost">パス</button><button id="reset" class="btn">リセット</button><button id="leave" class="btn ghost sm" style="display:none">部屋を破棄</button></div>
+      <div class="chat-box" id="chatBox">
+        <div class="chat-log" id="chatLog"></div>
+        <div class="chat-form"><input id="chatIn" placeholder="メッセージ（40文字まで）" maxlength="40" autocomplete="off"><button type="button" class="btn sm" id="chatSend">送信</button></div>
+      </div>
     </div>
   </div>
 </div></section>
@@ -206,7 +218,7 @@ $('tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;  document
 /* ================= オセロ ================= */
 (()=>{
 const N=8,EMPTY=0,BLACK=1,WHITE=2;
-const VER='20261122fb2',ROOM_TTL=24*60*60*1000;
+const VER='20261122fb3',ROOM_TTL=24*60*60*1000;
 let SKILLS_ON=true,AIC=2,ONLINE=false,conn=null,isHost=false,MYC=0,gen=0,waitStart=false;
 const CD={meteor:2,steal:2,snipe:2,shield:3};
 const SKILLS=[['meteor','✦ メテオ'],['steal','⇄ スティール'],['snipe','◎ スナイプ'],['shield','◈ シールド']];
@@ -408,7 +420,7 @@ function aiMove(){
 }
 
 /* ---- オンライン対戦（Firebase Realtime Database） ---- */
-let db=null,uid='',roomRef=null,localN=0,watchers=[];
+let db=null,uid='',roomRef=null,localN=0,watchers=[],chatSeq=0,lastChatId='',chatCooldown=0,chatLogs=[];
 function clearHash(){if(location.hash)try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
 function titles(){
   let a='黒の必殺技',b='白の必殺技';
@@ -424,6 +436,48 @@ function syncOlUI(){
   r.style.display=waitStart||(ONLINE&&(!conn||!isHost))?'none':'';
   r.disabled=!canReset();
   const lv=$('leave');lv.style.display=ONLINE&&conn?'':'none';lv.textContent=isHost?'部屋を破棄':'退室';
+  $('chatBox').style.display=ONLINE&&conn?'flex':'none';
+}
+function renderChat(){
+  const log=$('chatLog');
+  log.textContent='';
+  log.style.display=chatLogs.length?'flex':'none';
+  for(const m of chatLogs){
+    const row=document.createElement('div');
+    row.className='chat-m '+(m.mine?'me':'op');
+    const tag=document.createElement('span');
+    tag.textContent=m.mine?'あなた':'相手';
+    const body=document.createElement('b');
+    body.textContent=m.text;
+    row.appendChild(tag);row.appendChild(body);
+    log.appendChild(row);
+  }
+}
+function addChatLog(mine,text){
+  chatLogs.push({mine,text});
+  if(chatLogs.length>3)chatLogs.shift();
+  renderChat();
+}
+function sendChat(){
+  if(!(ONLINE&&roomRef&&conn&&db))return;
+  const now=Date.now();
+  if(now<chatCooldown)return;
+  const inp=$('chatIn'),text=inp.value.trim().slice(0,40);
+  if(!text)return;
+  chatCooldown=now+1000;
+  inp.value='';
+  const id=uid.slice(0,6)+'-'+(++chatSeq)+'-'+now;
+  lastChatId=id;
+  addChatLog(true,text);
+  roomRef.child('chat').set(JSON.stringify({by:uid,text,id})).catch(e=>setOns(netErr(e)));
+  roomRef.child('ts').set(firebase.database.ServerValue.TIMESTAMP).catch(()=>{});
+}
+function applyChat(str){
+  let x;try{x=JSON.parse(str)}catch(e){return}
+  if(!x||!x.id||!x.text||x.id===lastChatId)return;
+  lastChatId=x.id;
+  if(x.by===uid)return;
+  addChatLog(false,String(x.text).slice(0,40));
 }
 function netErr(e){
   const c=(e&&(e.code||e.message))||String(e);
@@ -480,7 +534,7 @@ function closeNet(drop){
     }catch(e){}
   }
   if(drop){try{localStorage.removeItem('othRoom')}catch(e){}clearHash()}
-  roomRef=null;conn=null;isHost=false;MYC=0;localN=0;
+  roomRef=null;conn=null;isHost=false;MYC=0;localN=0;lastChatId='';chatLogs=[];$('chatIn').value='';renderChat();
   $('inv').style.display='none';setOns('');
   syncOlUI();syncTg();updRj();
 }
@@ -507,6 +561,7 @@ function attach(code,role,active){
     setOns(v?'相手がオンライン':'相手が離れています。戻るのを待っています',v?'on':'off');
   });
   watch(rr.child('snap'),'value',s=>{if(s.val())applySnap(s.val())});
+  watch(rr.child('chat'),'value',s=>{if(s.val())applyChat(s.val())});
   if(isHost){
     watch(rr.child('guest'),'value',async s=>{
       if(!s.val()||conn)return;
@@ -675,6 +730,8 @@ $('cpc').onclick=e=>copyText($('invc').textContent,e.currentTarget);
 $('cpl').onclick=e=>copyText($('invl').textContent,e.currentTarget);
 $('mk').onclick=makeRoom;$('rj').onclick=()=>{let c='';try{c=localStorage.getItem('othRoom')||''}catch(e){}joinRoom(c)};$('dr').onclick=discardSavedRoom;$('jn').onclick=()=>joinRoom($('rc').value);
 $('leave').onclick=$('cancelWait').onclick=leaveRoom;
+$('chatSend').onclick=sendChat;
+$('chatIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing)sendChat()});
 $('pass').onclick=()=>{if(!over&&!thinking&&!locked()){pass();pushSnap()}};
 $('reset').onclick=$('again').onclick=()=>{if(!canReset())return;initGame()};
 $('view').onclick=()=>$('result').classList.remove('show');
