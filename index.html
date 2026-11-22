@@ -42,7 +42,8 @@ body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radia
 .o-work{display:flex;flex-direction:column;align-items:center;width:100%}
 .o-left,.o-right{display:contents}
 @media (max-width:879px){
-  #olp,#inv,#ons{order:1}.info{order:2}#board{order:3}#skl{order:4}#msg{order:5}.o-act{order:6}
+  #olp,#inv,#ons{order:1}.info{order:2}#board{order:3}#skl{order:4}.o-act{order:5}
+  .o-act{margin-top:8px}
 }
 @media (min-width:880px){
   #app{padding:16px 24px 24px}
@@ -56,7 +57,6 @@ body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radia
   .o-right .info{justify-content:space-around}
   .o-right .ons{margin:0}
   .o-left .ob{grid-template-columns:repeat(8,52px);grid-template-rows:repeat(8,52px)}
-  .o-left .msg{max-width:460px;margin:12px 0 0;min-height:2.2em}
 }
 .ob{display:grid;grid-template-columns:repeat(8,min(50px,10.5vw));grid-template-rows:repeat(8,min(50px,10.5vw));gap:3px;background:var(--board);border:1px solid var(--line);border-radius:26px;padding:9px;box-shadow:0 30px 60px -24px rgba(0,0,0,.4);transition:box-shadow .3s,border-color .3s}
 .cell{background:var(--cell);display:flex;justify-content:center;align-items:center;cursor:pointer;position:relative;border-radius:10px;transition:background .25s}
@@ -123,7 +123,10 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 #invc{font-size:1.15rem;letter-spacing:.3em;padding-left:.3em}
 .inv-url{flex:1;min-width:0;font-size:.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btn.sm{padding:7px 14px;font-size:.75rem;letter-spacing:.05em;white-space:nowrap}
-.ons{font-size:.8rem;color:var(--mute);margin-bottom:10px;text-align:center}
+.ons{font-size:.82rem;color:var(--mute);margin-bottom:10px;text-align:center;line-height:1.4}
+.ondot{display:inline-block;width:.62em;height:.62em;border-radius:50%;vertical-align:.04em;margin-right:.45em}
+.ondot.on{background:#22c55e;box-shadow:0 0 0 2px rgba(34,197,94,.2)}
+.ondot.off{background:var(--mute)}
 /* fx */
 .flash{position:fixed;inset:0;pointer-events:none;z-index:50;animation:fl .5s ease-out forwards;background:radial-gradient(circle,var(--fg),transparent 75%)}
 .flash.hard{background:var(--fg)}.flash.meteor{background:radial-gradient(circle,var(--fg),transparent 85%)}.flash.shield{background:radial-gradient(circle,transparent 30%,var(--fg) 100%)}
@@ -149,7 +152,6 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
   <div class="o-work">
     <div class="o-left">
       <div id="board" class="ob"></div>
-      <div id="msg" class="msg"></div>
     </div>
     <div class="o-right">
       <div class="ol-card" id="olp">
@@ -213,9 +215,16 @@ const CORNERS=[[0,0],[0,7],[7,0],[7,7]];
 const DIRS=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
 const MODES=[['pvp','2人プレイ'],['ai-easy','VS AI かんたん'],['ai-normal','VS AI ふつう'],['ai-hard','VS AI つよい'],['online','オンライン対戦']];
 let board,shields,prev=null,cur,activeSkill,turnCount,passCount,over,thinking,aiTimer,lastMove,cooldowns,meteorCount;
-const name=p=>p===BLACK?'黒':'白',say=t=>$('msg').innerText=t,isAI=()=>$('mode').value.startsWith('ai'),aiTurn=()=>isAI()&&cur===AIC,locked=()=>aiTurn()||(ONLINE&&(!conn||cur!==MYC));
+const name=p=>p===BLACK?'黒':'白',isAI=()=>$('mode').value.startsWith('ai'),aiTurn=()=>isAI()&&cur===AIC,locked=()=>aiTurn()||(ONLINE&&(!conn||cur!==MYC));
 const canTg=()=>!thinking&&(ONLINE?(!conn||(isHost&&over)):(over||(turnCount===1&&passCount===0)));
 const canReset=()=>!(ONLINE&&(!conn||!isHost||!over));
+function setOns(text,state){
+  const o=$('ons');
+  if(!ONLINE||!text){o.style.display='none';o.textContent='';return}
+  o.style.display='';o.textContent='';
+  if(state){const d=document.createElement('span');d.className='ondot '+(state==='on'?'on':'off');o.appendChild(d)}
+  o.appendChild(document.createTextNode(text));
+}
 function clearAi(){if(aiTimer){clearTimeout(aiTimer);aiTimer=null}thinking=false}
 function countShields(p){let n=0;for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(shields[r][c]&&board[r][c]===p)n++;return n}
 function fx(t){flash(t==='meteor'||t==='shield'?t:'');if(t==='meteor')shake($('st'))}
@@ -228,18 +237,15 @@ function initGame(remote){
   meteorCount={[BLACK]:0,[WHITE]:0};
   $('result').classList.remove('show');
   ONLINE=$('mode').value==='online';
-  let intro='';
   if(isAI()){
     AIC=Math.random()<.5?WHITE:BLACK;
-    if(AIC===BLACK){waitStart=true;intro='AIが先手（黒）です。準備ができたら「対局開始」を押してください'}
-    else intro='あなたは先手（黒）です';
+    if(AIC===BLACK)waitStart=true;
   }
-  if(ONLINE&&conn){if(isHost&&!remote){MYC=Math.random()<.5?BLACK:WHITE}intro=`あなたは${MYC===BLACK?'先手（黒）':'後手（白）'}です`}
-  if(ONLINE&&!conn&&!remote)intro='部屋を作るか、部屋コードを入れて入室してください';
+  if(ONLINE&&conn&&isHost&&!remote)MYC=Math.random()<.5?BLACK:WHITE;
+  if(!ONLINE||(!conn&&!roomRef))setOns('');
   titles();syncTg();syncOlUI();
-  say(intro);render();
-  updRj();
-  if(ONLINE&&conn&&isHost&&!remote)pushSnap({new:1,msg:''});
+  render();updRj();
+  if(ONLINE&&conn&&isHost&&!remote)pushSnap({new:1});
 }
 function flippable(row,col,player){
   if(board[row][col]!==EMPTY)return[];
@@ -254,44 +260,41 @@ function flippable(row,col,player){
 const hasMove=p=>{for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(flippable(r,c,p).length)return true;return false};
 function handleToggle(k){
   if(over||thinking||locked()||!SKILLS_ON)return;
-  if(cooldowns[cur][k]>0)return say(`クールダウン中です（あと ${cooldowns[cur][k]} ターン）`);
-  if(k==='shield'&&countShields(cur)>=3)return say('シールドは盤上に3つまでです');
-  if(activeSkill===k){activeSkill=null;say('')}
-  else{activeSkill=k;say({meteor:meteorCount[cur]>=5?'スーパーメテオ：シールド付きも含め、選んだ1石を確実に破壊します':`メテオ：選んだ駒を1つ破壊します（${meteorCount[cur]}/5）`,steal:'スティール：相手の駒を1つ奪います',snipe:'スナイプ：挟めなくても好きな空きマスに1石置けます',shield:'シールド：自分の石1つを裏返らなくします（最大3つ）'}[k])}
+  if(cooldowns[cur][k]>0)return;
+  if(k==='shield'&&countShields(cur)>=3)return;
+  activeSkill=activeSkill===k?null:k;
   render();
 }
-const warn=t=>{if(!aiTurn())say(t);return false};
 const cnt=p=>{let n=0;for(const r of board)for(const v of r)if(v===p)n++;return n};
 function act(row,col){
-  const opp=cur===BLACK?WHITE:BLACK,p=name(cur);
+  const opp=cur===BLACK?WHITE:BLACK;
   if(!SKILLS_ON)activeSkill=null;
   if(activeSkill==='meteor'){
-    if(board[row][col]===EMPTY)return warn('破壊する駒を選んでください');
+    if(board[row][col]===EMPTY)return false;
     const sup=meteorCount[cur]>=5;
-    if(!sup&&shields[row][col])return warn('シールド付きの駒は破壊できません');
-    if(board[row][col]===opp&&cnt(opp)<=1)return warn('相手の最後の1個は破壊できません');
+    if(!sup&&shields[row][col])return false;
+    if(board[row][col]===opp&&cnt(opp)<=1)return false;
     fx('meteor');cooldowns[cur].meteor=CD.meteor;meteorCount[cur]++;activeSkill=null;
     board[row][col]=EMPTY;shields[row][col]=false;lastMove={row,col};
-    say(sup?`${p}：スーパーメテオ。シールドごと破壊しました`:`${p}：メテオ。駒を1つ破壊しました`);switchTurn(false);return true;
+    switchTurn(false);return true;
   }
   if(activeSkill==='steal'){
-    if(board[row][col]!==opp||shields[row][col])return warn('相手のシールドなしの駒を選んでください');
-    if(cnt(opp)<=1)return warn('相手の最後の1個は奪えません');
-    fx('steal');cooldowns[cur].steal=CD.steal;activeSkill=null;board[row][col]=cur;lastMove={row,col};say(`${p}：スティール成功`);switchTurn(false);return true;
+    if(board[row][col]!==opp||shields[row][col]||cnt(opp)<=1)return false;
+    fx('steal');cooldowns[cur].steal=CD.steal;activeSkill=null;board[row][col]=cur;lastMove={row,col};switchTurn(false);return true;
   }
   if(activeSkill==='snipe'){
-    if(board[row][col]!==EMPTY)return warn('空きマスを選んでください');
-    fx('snipe');cooldowns[cur].snipe=CD.snipe;activeSkill=null;board[row][col]=cur;lastMove={row,col};say(`${p}：スナイプ完了`);switchTurn(false);return true;
+    if(board[row][col]!==EMPTY)return false;
+    fx('snipe');cooldowns[cur].snipe=CD.snipe;activeSkill=null;board[row][col]=cur;lastMove={row,col};switchTurn(false);return true;
   }
   if(activeSkill==='shield'){
-    if(board[row][col]!==cur||shields[row][col]||countShields(cur)>=3)return warn('シールドを付ける自分の駒を選んでください');
-    fx('shield');cooldowns[cur].shield=CD.shield;activeSkill=null;shields[row][col]=true;lastMove={row,col};say(`${p}：シールド展開`);switchTurn(false);return true;
+    if(board[row][col]!==cur||shields[row][col]||countShields(cur)>=3)return false;
+    fx('shield');cooldowns[cur].shield=CD.shield;activeSkill=null;shields[row][col]=true;lastMove={row,col};switchTurn(false);return true;
   }
   const fl=flippable(row,col,cur);if(!fl.length)return false;
   board[row][col]=cur;for(const[r,c]of fl)board[r][c]=cur;
-  lastMove={row,col};say('');switchTurn(false);return true;
+  lastMove={row,col};switchTurn(false);return true;
 }
-function pass(){activeSkill=null;lastMove=null;say(`${name(cur)}はパスしました`);switchTurn(true)}
+function pass(){activeSkill=null;lastMove=null;switchTurn(true)}
 function switchTurn(isPass){
   passCount=isPass?passCount+1:0;
   if(passCount>=2){gameOver();return}
@@ -300,7 +303,7 @@ function switchTurn(isPass){
 }
 function aiSchedule(ms){
   clearAi();
-  if(!over&&!waitStart&&aiTurn()){thinking=true;say('AIが思考中…');render();aiTimer=setTimeout(()=>{thinking=false;aiTimer=null;aiMove()},ms)}
+  if(!over&&!waitStart&&aiTurn()){thinking=true;render();aiTimer=setTimeout(()=>{thinking=false;aiTimer=null;aiMove()},ms)}
 }
 function aiSkill(k,r,c){activeSkill=k;const ok=act(r,c);if(!ok)activeSkill=null;return ok}
 
@@ -447,8 +450,8 @@ function updRj(){
 }
 function pushSnap(extra){
   if(!(ONLINE&&roomRef&&conn&&db))return;
-  const x=Object.assign({b:board,s:shields,cur,tc:turnCount,pc:passCount,over,cd:cooldowns,mc:meteorCount,lm:lastMove,sp:SKILLS_ON,hc:isHost?MYC:3-MYC,msg:$('msg').innerText,n:++localN,by:uid},extra||{});
-  roomRef.child('snap').set(JSON.stringify(x)).catch(e=>say(netErr(e)));
+  const x=Object.assign({b:board,s:shields,cur,tc:turnCount,pc:passCount,over,cd:cooldowns,mc:meteorCount,lm:lastMove,sp:SKILLS_ON,hc:isHost?MYC:3-MYC,n:++localN,by:uid},extra||{});
+  roomRef.child('snap').set(JSON.stringify(x)).catch(e=>setOns(netErr(e)));
   roomRef.child('ts').set(firebase.database.ServerValue.TIMESTAMP).catch(()=>{});
 }
 function applySnap(str){
@@ -458,7 +461,6 @@ function applySnap(str){
   board=x.b;shields=x.s;cur=x.cur;turnCount=x.tc;passCount=x.pc;over=x.over;cooldowns=x.cd;meteorCount=x.mc;lastMove=x.lm;SKILLS_ON=x.sp;
   activeSkill=null;clearAi();MYC=isHost?x.hc:3-x.hc;conn=true;
   $('inv').style.display='none';titles();
-  say(x.new?`あなたは${MYC===BLACK?'先手（黒）':'後手（白）'}です`:(x.msg||''));
   render();
   if(over)showResult();else $('result').classList.remove('show');
 }
@@ -479,7 +481,7 @@ function closeNet(drop){
   }
   if(drop){try{localStorage.removeItem('othRoom')}catch(e){}clearHash()}
   roomRef=null;conn=null;isHost=false;MYC=0;localN=0;
-  $('inv').style.display='none';$('ons').style.display='none';
+  $('inv').style.display='none';setOns('');
   syncOlUI();syncTg();updRj();
 }
 function syncPresence(rr){
@@ -500,9 +502,9 @@ function attach(code,role,active){
   const other=isHost?'gon':'hon';
   watch(db.ref('.info/connected'),'value',s=>{if(s.val())syncPresence(rr)});
   watch(rr.child(other),'value',s=>{
-    const v=s.val(),o=$('ons');
-    if(v===null){o.style.display='none';return}
-    o.style.display='';o.textContent=v?'● 相手がオンライン':'○ 相手が離れています。戻るのを待っています';
+    const v=s.val();
+    if(v===null){if(conn)setOns('');return}
+    setOns(v?'相手がオンライン':'相手が離れています。戻るのを待っています',v?'on':'off');
   });
   watch(rr.child('snap'),'value',s=>{if(s.val())applySnap(s.val())});
   if(isHost){
@@ -521,19 +523,19 @@ function attach(code,role,active){
     }
   }else{
     watch(rr.child('host'),'value',s=>{
-      if(s.val()===null&&rr===roomRef){closeNet(true);initGame();say('ホストが部屋を閉じました')}
+      if(s.val()===null&&rr===roomRef){closeNet(true);initGame();setOns('ホストが部屋を閉じました')}
     });
-    say('接続しました。ゲーム開始を待っています…');render();
+    setOns('接続しました。ゲーム開始を待っています…');render();
   }
 }
 function showInvite(code){
   $('invc').textContent=code;$('invl').textContent=location.href.split('#')[0]+'#'+code;
-  $('inv').style.display='flex';syncOlUI();syncTg();say('相手を待っています…');
+  $('inv').style.display='flex';syncOlUI();syncTg();setOns('相手を待っています…');
 }
 async function makeRoom(){
   if(roomRef)closeNet(true);else clearHash();
   const g=gen;
-  try{await fbInit()}catch(e){return say(netErr(e))}
+  try{await fbInit()}catch(e){return setOns(netErr(e))}
   if(g!==gen)return;
   for(let i=0;i<5;i++){
     const code=Array.from({length:5},()=>'abcdefghjkmnpqrstuvwxyz23456789'[Math.random()*31|0]).join('');
@@ -541,47 +543,47 @@ async function makeRoom(){
       const r=await db.ref('rooms/'+code).transaction(c=>c===null?{host:uid,ver:VER,ts:firebase.database.ServerValue.TIMESTAMP}:undefined);
       if(g!==gen)return;
       if(r.committed){attach(code,'host',false);showInvite(code);return}
-    }catch(e){return say(netErr(e))}
+    }catch(e){return setOns(netErr(e))}
   }
-  say('部屋を作れませんでした。もう一度試してください');
+  setOns('部屋を作れませんでした。もう一度試してください');
 }
 async function joinRoom(raw){
   const code=(raw||'').trim().toLowerCase();
-  if(!/^[a-z0-9]{5}$/.test(code))return say('部屋コードは5文字です');
+  if(!/^[a-z0-9]{5}$/.test(code))return setOns('部屋コードは5文字です');
   if(roomRef)closeNet(true);
-  const g=gen;say('接続中…');
-  try{await fbInit()}catch(e){return say(netErr(e))}
+  const g=gen;setOns('接続中…');
+  try{await fbInit()}catch(e){return setOns(netErr(e))}
   try{
     const r=db.ref('rooms/'+code),v=(await r.once('value')).val();
     if(g!==gen)return;
     if(!v||!v.host){
       try{if(localStorage.getItem('othRoom')===code)localStorage.removeItem('othRoom')}catch(e){}
       if(location.hash.slice(1).toLowerCase()===code)clearHash();
-      updRj();return say('その部屋コードの部屋が見つかりません');
+      updRj();return setOns('その部屋コードの部屋が見つかりません');
     }
     if(v.ts&&Date.now()-v.ts>ROOM_TTL){
       try{if(localStorage.getItem('othRoom')===code)localStorage.removeItem('othRoom')}catch(e){}
       if(location.hash.slice(1).toLowerCase()===code)clearHash();
       updRj();r.remove().catch(()=>{});
-      return say('この部屋は有効期限（24時間）を過ぎたため破棄されました');
+      return setOns('この部屋は有効期限（24時間）を過ぎたため破棄されました');
     }
-    if(v.ver!==VER)return say('相手とページのバージョンが違います。両方の画面を再読み込みしてください');
+    if(v.ver!==VER)return setOns('相手とページのバージョンが違います。両方の画面を再読み込みしてください');
     if(v.host===uid){attach(code,'host',!!v.guest);if(!v.guest)showInvite(code);return}
     if(v.guest&&v.guest!==uid){
       if(location.hash.slice(1).toLowerCase()===code)clearHash();
-      return say('この部屋は満員です');
+      return setOns('この部屋は満員です');
     }
     if(!v.guest){
       const t=await r.child('guest').transaction(c=>c===null?uid:(c===uid?c:undefined));
       if(!t.committed){
         if(location.hash.slice(1).toLowerCase()===code)clearHash();
-        return say('この部屋は満員です');
+        return setOns('この部屋は満員です');
       }
     }
     r.child('ts').set(firebase.database.ServerValue.TIMESTAMP).catch(()=>{});
     if(g!==gen)return;
     attach(code,'guest',true);
-  }catch(e){say(netErr(e))}
+  }catch(e){setOns(netErr(e))}
 }
 async function discardSavedRoom(){
   let code='';try{code=localStorage.getItem('othRoom')||''}catch(e){}
@@ -598,18 +600,18 @@ async function discardSavedRoom(){
       await r.child('gon').set(false).catch(()=>{});
     }
   }catch(e){}
-  say('前回の部屋データを破棄しました');
+  setOns('前回の部屋データを破棄しました');
 }
 function leaveRoom(){
   if(!ONLINE||!roomRef)return;
   const wasHost=isHost;
   closeNet(true);initGame();
-  say(wasHost?'部屋を破棄しました':'部屋から退室しました');
+  setOns(wasHost?'部屋を破棄しました':'部屋から退室しました');
 }
 function count(){let b=0,w=0,e=0;for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=board[r][c];v===BLACK?b++:v===WHITE?w++:e++}return{b,w,e}}
 function showResult(){
   const{b,w}=count(),t=b>w?'黒の勝利':w>b?'白の勝利':'引き分け';
-  say(`ゲーム終了：${t}（${b} 対 ${w}）`);$('rt').innerText=t;$('rs').innerHTML=`<span class="dot b"></span>${b} &nbsp;/&nbsp; <span class="dot w"></span>${w}`;
+  $('rt').innerText=t;$('rs').innerHTML=`<span class="dot b"></span>${b} &nbsp;/&nbsp; <span class="dot w"></span>${w}`;
   $('result').classList.add('show');$('again').style.display=ONLINE&&conn&&!isHost?'none':'';
 }
 function gameOver(){
@@ -637,8 +639,7 @@ function render(){
   }
   prev=board.map(r=>r.slice());
   $('tc').innerText=turnCount;$('tn').innerText=name(cur)+(ONLINE&&conn?(cur===MYC?'（あなた）':'（相手）'):'');$('bc').innerText=b;$('wc').innerText=w;
-  const pb=$('pass');
-  if(hints&&!canMove){pb.style.display='inline-block';if(!activeSkill){say(SKILLS_ON?'置けるマスがありません。必殺技を使うかパスしてください':'置けるマスがありません。パスしてください')}}else pb.style.display='none';
+  $('pass').style.display=(hints&&!canMove)?'inline-block':'none';
   $('p1').classList.toggle('turn',cur===BLACK&&!over);$('p2').classList.toggle('turn',cur===WHITE&&!over);
   $('skl').style.display=SKILLS_ON?'':'none';
   for(const[pre,pl]of[['b',BLACK],['w',WHITE]])for(const[k]of SKILLS){
