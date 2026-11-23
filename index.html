@@ -13,7 +13,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px);overflow-y:scroll;scrollbar
 button:focus:not(:focus-visible){outline:none}
 button,.cell,.ddl li,.info,.sc,.tabs{-webkit-user-select:none;user-select:none}
 body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radial-gradient(120% 55% at 50% -10%,var(--cellh),transparent 70%);background-repeat:no-repeat;color:var(--fg);font-family:"Helvetica Neue","Hiragino Sans","Yu Gothic",sans-serif}
-#app{display:flex;flex-direction:column;align-items:center;padding:18px 12px 30px;overflow-x:hidden}
+#app{display:flex;flex-direction:column;align-items:center;padding:18px 12px 30px;overflow-x:clip}
 .tabs{position:relative;display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:999px;padding:4px;background:var(--card);backdrop-filter:blur(12px);margin-bottom:20px}
 .tabs::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:999px;background:var(--fg);transition:transform .3s cubic-bezier(.32,.72,0,1);z-index:0}
 .tabs[data-tab="k"]::before{transform:translateX(100%)}
@@ -154,16 +154,23 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 /* coin toss */
 #toss{position:fixed;inset:0;z-index:65;background:rgba(0,0,0,.42);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s,visibility .22s}
 #toss.show{opacity:1;visibility:visible;pointer-events:auto}
-.toss-box{background:var(--bg);border:1px solid var(--line);border-radius:30px;padding:34px 36px 28px;text-align:center;min-width:250px;box-shadow:0 40px 80px -20px rgba(0,0,0,.5)}
-.coin-stage{width:96px;height:96px;margin:0 auto 20px;perspective:700px}
+.toss-box{background:var(--bg);border:1px solid var(--line);border-radius:30px;padding:24px 36px 28px;text-align:center;min-width:260px;box-shadow:0 40px 80px -20px rgba(0,0,0,.5)}
+.coin-stage{position:relative;width:140px;height:132px;margin:0 auto 12px;display:flex;align-items:flex-end;justify-content:center;perspective:800px}
+.coin-stage .shadow{position:absolute;bottom:10px;width:72px;height:14px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.42),transparent)}
+.coin-wrap{position:relative;bottom:22px;width:88px;height:88px;transform-style:preserve-3d}
 .coin{width:100%;height:100%;position:relative;transform-style:preserve-3d}
-.coin .face{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;letter-spacing:.15em;padding-left:.15em}
-.coin .front{background:linear-gradient(145deg,#36363e,#08080a);color:#fff;box-shadow:0 0 0 1.5px rgba(255,255,255,.28),0 14px 24px -6px rgba(0,0,0,.6),inset 0 2px 4px rgba(255,255,255,.18),inset 0 -4px 8px rgba(0,0,0,.5)}
-.coin .back{transform:rotateX(180deg);background:radial-gradient(circle at 32% 28%,#fff,#d2d2d7 70%);color:#111;box-shadow:0 0 0 1.5px rgba(128,128,128,.28),0 14px 24px -6px rgba(0,0,0,.45),inset 0 -4px 7px rgba(0,0,0,.18)}
-.coin.toss-b{animation:tossB 1.35s cubic-bezier(.22,.61,.36,1) forwards}
-.coin.toss-w{animation:tossW 1.35s cubic-bezier(.22,.61,.36,1) forwards}
-@keyframes tossB{0%{transform:translateY(0) rotateX(0) scale(.9)}45%{transform:translateY(-56px) rotateX(720deg) scale(1.16)}85%{transform:translateY(3px) rotateX(1440deg) scale(.97)}100%{transform:translateY(0) rotateX(1440deg) scale(1)}}
-@keyframes tossW{0%{transform:translateY(0) rotateX(0) scale(.9)}45%{transform:translateY(-56px) rotateX(900deg) scale(1.16)}85%{transform:translateY(3px) rotateX(1620deg) scale(.97)}100%{transform:translateY(0) rotateX(1620deg) scale(1)}}
+.coin .core{position:absolute;inset:0;border-radius:50%;background:#6b6b73}
+.coin .face{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:700;letter-spacing:.12em;padding-left:.12em}
+.coin .front{transform:translateZ(1.5px);background:linear-gradient(145deg,#36363e,#08080a);color:#fff;box-shadow:0 0 0 1.5px rgba(255,255,255,.3),inset 0 2px 4px rgba(255,255,255,.18),inset 0 -4px 8px rgba(0,0,0,.5)}
+.coin .back{transform:rotateY(180deg) translateZ(1.5px);background:radial-gradient(circle at 32% 28%,#fff,#d2d2d7 70%);color:#111;box-shadow:0 0 0 1.5px rgba(128,128,128,.3),inset 0 -4px 7px rgba(0,0,0,.18)}
+#toss.go .coin-wrap{animation:pop2 1.25s cubic-bezier(.22,.68,.32,1) forwards}
+#toss.go .shadow{animation:sh2 1.25s cubic-bezier(.22,.68,.32,1) forwards}
+#toss.go-b .coin{animation:spinY_B 1.25s cubic-bezier(.14,.8,.26,1) forwards}
+#toss.go-w .coin{animation:spinY_W 1.25s cubic-bezier(.14,.8,.26,1) forwards}
+@keyframes pop2{0%{transform:translateY(0) scale(.92)}38%{transform:translateY(-18px) scale(1.18)}100%{transform:translateY(0) scale(1)}}
+@keyframes sh2{0%{transform:scale(.92);opacity:.85}38%{transform:scale(.72);opacity:.45}100%{transform:scale(.95);opacity:.85}}
+@keyframes spinY_B{0%{transform:rotateY(0)}100%{transform:rotateY(1440deg)}}
+@keyframes spinY_W{0%{transform:rotateY(0)}100%{transform:rotateY(1620deg)}}
 #tossMsg{margin:0;font-size:1rem;font-weight:700;letter-spacing:.08em;color:var(--fg)}
 #tossMsg.pop{animation:flip .35s ease}
 /* fx */
@@ -176,7 +183,7 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 #result.show{display:flex}
 #result div{background:var(--bg);border:1px solid var(--line);border-radius:30px;padding:28px 32px;text-align:center;box-shadow:0 40px 80px -20px rgba(0,0,0,.5)}
 #result h2{margin:0 0 6px;font-weight:300;letter-spacing:.35em;padding-left:.35em}#result p{margin:0 0 18px;font-size:1.1rem}
-@media (prefers-reduced-motion:reduce){.shake,.g.anim-r,.g.anim-l,#tossMsg.pop{animation:none}.tabs::before{transition:none}.coin.toss-b,.coin.toss-w{animation-duration:.01ms}.btn:active,.tg:active,.sk:active,.tabs button:active,.ddb:active{transform:none}}
+@media (prefers-reduced-motion:reduce){.shake,.g.anim-r,.g.anim-l,#tossMsg.pop{animation:none}.tabs::before{transition:none}#toss.go .coin-wrap,#toss.go .shadow,#toss.go-b .coin,#toss.go-w .coin{animation-duration:.01ms}.btn:active,.tg:active,.sk:active,.tabs button:active,.ddb:active{transform:none}}
 </style>
 </head>
 <body>
@@ -224,7 +231,7 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 </div></section>
 
 </div>
-<div id="toss"><div class="toss-box"><div class="coin-stage"><div class="coin" id="coin"><div class="face front">先手</div><div class="face back">後手</div></div></div><p id="tossMsg"></p></div></div>
+<div id="toss"><div class="toss-box"><div class="coin-stage"><div class="shadow"></div><div class="coin-wrap"><div class="coin" id="coin"><div class="face front">先手</div><div class="core"></div><div class="face back">後手</div></div></div></div><p id="tossMsg"></p></div></div>
 <div id="result"><div><h2 id="rt"></h2><p id="rs"></p><button class="btn" id="again">もう一度</button> <button class="btn ghost" id="view">盤面を見る</button></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -260,9 +267,10 @@ $('tabs').onclick=e=>{
 /* ================= オセロ ================= */
 (()=>{
 const N=8,EMPTY=0,BLACK=1,WHITE=2;
-const VER='20261122fb4',ROOM_TTL=24*60*60*1000;
+const VER='20261123fb1',ROOM_TTL=24*60*60*1000;
 let SKILLS_ON=true,AIC=0,ONLINE=false,conn=null,isHost=false,MYC=0,gen=0,waitStart=false,oppOnline=false;
 let tossing=false,tossTimer=null,tossEndTimer=null,playedTossId='';
+try{playedTossId=localStorage.getItem('othToss')||''}catch(e){}
 const CD={meteor:2,steal:2,snipe:2,shield:3};
 const SKILLS=[['meteor','✦ メテオ','1石を破壊'],['steal','⇄ スティール','相手石を奪う'],['snipe','◎ スナイプ','どこでも置ける'],['shield','◈ シールド','1石を保護']];
 const W=[[100,-20,10,5,5,10,-20,100],[-20,-50,-2,-2,-2,-2,-50,-20],[10,-2,1,1,1,1,-2,10],[5,-2,1,1,1,1,-2,5],[5,-2,1,1,1,1,-2,5],[10,-2,1,1,1,1,-2,10],[-20,-50,-2,-2,-2,-2,-50,-20],[100,-20,10,5,5,10,-20,100]];
@@ -273,6 +281,16 @@ let board,shields,prev=null,cur,activeSkill,turnCount,passCount,over,thinking,ai
 const name=p=>p===BLACK?'黒':'白',isAI=()=>$('mode').value.startsWith('ai'),aiTurn=()=>isAI()&&AIC!==0&&cur===AIC,locked=()=>waitStart||tossing||aiTurn()||(ONLINE&&(!conn||cur!==MYC));
 const canTg=()=>!thinking&&!tossing&&(over||(turnCount===1&&passCount===0))&&(!ONLINE||!conn||isHost);
 const canReset=()=>!tossing&&!(ONLINE&&(!conn||!isHost||!over));
+const cells=[];
+{
+  const el=$('board');
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const cell=document.createElement('div');
+    cell.className='cell';
+    cell.addEventListener('click',()=>{if(!over&&!thinking&&!locked()){if(act(r,c))pushSnap()}});
+    el.appendChild(cell);cells.push(cell);
+  }
+}
 function setOns(text){
   const o=$('ons');
   if(!ONLINE||!text){o.style.display='none';o.textContent='';return}
@@ -283,27 +301,29 @@ function clearToss(){
   if(tossTimer){clearTimeout(tossTimer);tossTimer=null}
   if(tossEndTimer){clearTimeout(tossEndTimer);tossEndTimer=null}
   tossing=false;
-  $('toss').classList.remove('show');
-  $('coin').className='coin';
+  $('toss').className='';
+}
+function saveToss(tid){
+  playedTossId=tid;
+  try{if(tid)localStorage.setItem('othToss',tid);else localStorage.removeItem('othToss')}catch(e){}
 }
 function runToss(myColor,onDone){
   clearToss();tossing=true;
-  const el=$('toss'),coin=$('coin'),msg=$('tossMsg');
-  coin.className='coin';msg.classList.remove('pop');
-  msg.textContent='先攻・後手を決定中…';
+  const el=$('toss'),msg=$('tossMsg');
+  msg.className='';msg.textContent='先攻・後手を決定中…';
   el.classList.add('show');
-  void coin.offsetWidth;
-  coin.classList.add(myColor===BLACK?'toss-b':'toss-w');
+  void el.offsetWidth;
+  el.classList.add('go',myColor===BLACK?'go-b':'go-w');
   tossTimer=setTimeout(()=>{
     tossTimer=null;
     msg.textContent=myColor===BLACK?'あなたは 先手（黒）':'あなたは 後手（白）';
     void msg.offsetWidth;msg.classList.add('pop');
     tossEndTimer=setTimeout(()=>{
       tossEndTimer=null;tossing=false;
-      el.classList.remove('show');coin.className='coin';
+      el.className='';
       if(onDone)onDone();
     },850);
-  },1350);
+  },1250);
 }
 function countShields(p){let n=0;for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(shields[r][c]&&board[r][c]===p)n++;return n}
 function fx(t){flash(t==='meteor'||t==='shield'?t:'');if(t==='meteor')shake($('st'))}
@@ -322,7 +342,7 @@ function initGame(remote){
   if(!ONLINE||(!conn&&!roomRef))setOns('');
   if(ONLINE&&conn&&isHost&&!remote){
     const tid=Date.now()+'-'+Math.random().toString(36).slice(2,6);
-    playedTossId=tid;
+    saveToss(tid);
     pushSnap({new:1,tid});
     runToss(MYC,()=>{
       if(ONLINE&&conn&&isHost&&roomRef)pushChat({t:'start',hc:MYC});
@@ -390,8 +410,10 @@ function pass(){activeSkill=null;lastMove=null;addSysLog(`${name(cur)}：パス`
 function switchTurn(isPass){
   passCount=isPass?passCount+1:0;
   if(passCount>=2){gameOver();return}
+  turnCount++;if(turnCount>300){gameOver();return}
+  cur=cur===BLACK?WHITE:BLACK;
   for(const k in cooldowns[cur])if(cooldowns[cur][k]>0)cooldowns[cur][k]--;
-  turnCount++;if(turnCount>300){gameOver();return}cur=cur===BLACK?WHITE:BLACK;render();aiSchedule(700);
+  render();aiSchedule(700);
 }
 function aiSchedule(ms){
   clearAi();
@@ -603,15 +625,16 @@ function applySnap(str){
   let x;try{x=JSON.parse(str)}catch(e){return}
   if(!x||!(x.n>localN))return;
   localN=x.n;
+  const wasOver=over;
   board=x.b;shields=x.s;cur=x.cur;turnCount=x.tc;passCount=x.pc;over=x.over;cooldowns=x.cd;meteorCount=x.mc;lastMove=x.lm;SKILLS_ON=x.sp;
   activeSkill=null;clearAi();MYC=isHost?x.hc:3-x.hc;conn=true;
   $('inv').style.display='none';setOns('');
   if(x.tid&&x.tid!==playedTossId&&turnCount===1&&passCount===0&&!over){
-    playedTossId=x.tid;
+    saveToss(x.tid);
     runToss(MYC,()=>{titles();render()});
-  }else if(x.tid){playedTossId=x.tid}
+  }else if(x.tid){saveToss(x.tid)}
   titles();render();
-  if(over)showResult();else $('result').classList.remove('show');
+  if(over&&!wasOver)showResult();else if(!over)$('result').classList.remove('show');
 }
 function closeNet(drop){
   gen++;clearToss();watchers.forEach(f=>{try{f()}catch(e){}});watchers=[];
@@ -628,8 +651,8 @@ function closeNet(drop){
       }
     }catch(e){}
   }
-  if(drop){try{localStorage.removeItem('othRoom')}catch(e){}}
-  roomRef=null;conn=null;isHost=false;MYC=0;localN=0;oppOnline=false;playedTossId='';clearChatUI();
+  if(drop){try{localStorage.removeItem('othRoom')}catch(e){}saveToss('')}
+  roomRef=null;conn=null;isHost=false;MYC=0;localN=0;oppOnline=false;clearChatUI();
   $('inv').style.display='none';setOns('');
   syncOlUI();syncTg();updRj();
 }
@@ -708,11 +731,11 @@ async function joinRoom(raw){
     const r=db.ref('rooms/'+code),v=(await r.once('value')).val();
     if(g!==gen)return;
     if(!v||!v.host){
-      try{if(localStorage.getItem('othRoom')===code)localStorage.removeItem('othRoom')}catch(e){}
+      try{if(localStorage.getItem('othRoom')===code){localStorage.removeItem('othRoom');saveToss('')}}catch(e){}
       updRj();return setOns('その部屋コードの部屋が見つかりません');
     }
     if(v.ts&&Date.now()-v.ts>ROOM_TTL){
-      try{if(localStorage.getItem('othRoom')===code)localStorage.removeItem('othRoom')}catch(e){}
+      try{if(localStorage.getItem('othRoom')===code){localStorage.removeItem('othRoom');saveToss('')}}catch(e){}
       updRj();r.remove().catch(()=>{});
       return setOns('この部屋は有効期限（24時間）を過ぎたため破棄されました');
     }
@@ -732,7 +755,7 @@ async function discardSavedRoom(){
   let code='';try{code=localStorage.getItem('othRoom')||''}catch(e){}
   if(!code)return;
   try{localStorage.removeItem('othRoom')}catch(e){}
-  updRj();
+  saveToss('');updRj();
   if(!/^[a-z0-9]{5}$/.test(code))return;
   try{
     await fbInit();
@@ -767,21 +790,31 @@ function render(){
   const{b,w,e}=count();
   if(!over&&(b===0||w===0||e===0)){gameOver();return}
   syncTg();syncOlUI();
-  const el=$('board');el.innerHTML='';
   const canMove=hasMove(cur),opp=cur===BLACK?WHITE:BLACK,hints=!over&&!thinking&&!locked();
   for(let r=0;r<N;r++)for(let c=0;c<N;c++){
-    const cell=document.createElement('div'),v=board[r][c];cell.className='cell';
-    if(lastMove&&lastMove.row===r&&lastMove.col===c)cell.classList.add('last');
+    const cell=cells[r*N+c],v=board[r][c],sh=shields[r][c];
+    cell.classList.toggle('last',!!(lastMove&&lastMove.row===r&&lastMove.col===c));
+    let cls='';
     if(hints){
-      if(activeSkill==='meteor'&&v!==EMPTY&&(meteorCount[cur]>=5||!shields[r][c])&&!(v===opp&&cnt(opp)<=1))cell.classList.add('t');
-      else if(activeSkill==='steal'&&v===opp&&!shields[r][c]&&cnt(opp)>1)cell.classList.add('t');
-      else if(activeSkill==='snipe'&&v===EMPTY)cell.classList.add('t');
-      else if(activeSkill==='shield'&&v===cur&&!shields[r][c])cell.classList.add('t');
-      else if(!activeSkill&&v===EMPTY&&flippable(r,c,cur).length)cell.classList.add('valid');
+      if(activeSkill==='meteor'&&v!==EMPTY&&(meteorCount[cur]>=5||!sh)&&!(v===opp&&cnt(opp)<=1))cls='t';
+      else if(activeSkill==='steal'&&v===opp&&!sh&&cnt(opp)>1)cls='t';
+      else if(activeSkill==='snipe'&&v===EMPTY)cls='t';
+      else if(activeSkill==='shield'&&v===cur&&!sh)cls='t';
+      else if(!activeSkill&&v===EMPTY&&flippable(r,c,cur).length)cls='valid';
     }
-    cell.addEventListener('click',()=>{if(!over&&!thinking&&!locked()){if(act(r,c))pushSnap()}});
-    if(v!==EMPTY){const p=document.createElement('div');p.className='piece '+(v===BLACK?'black':'white');if(shields[r][c])p.classList.add('sh');if(prev&&prev[r][c]!==v)p.classList.add('flip');cell.appendChild(p)}
-    el.appendChild(cell);
+    cell.classList.toggle('t',cls==='t');
+    cell.classList.toggle('valid',cls==='valid');
+    if(!prev)cell.dataset.st='';
+    const st=v?(v+(sh?'s':'')):'0';
+    if(cell.dataset.st!==st){
+      cell.dataset.st=st;
+      cell.textContent='';
+      if(v!==EMPTY){
+        const p=document.createElement('div');
+        p.className='piece '+(v===BLACK?'black':'white')+(sh?' sh':'')+(prev&&prev[r][c]!==v?' flip':'');
+        cell.appendChild(p);
+      }
+    }
   }
   prev=board.map(r=>r.slice());
   $('tc').innerText=turnCount;$('tn').innerText=name(cur)+(!tossing&&ONLINE&&conn?(cur===MYC?'（あなた）':'（相手）'):'');$('bc').innerText=b;$('wc').innerText=w;
@@ -831,6 +864,7 @@ async function copyText(t,b){
 }
 $('cpc').onclick=e=>copyText($('invc').textContent,e.currentTarget);
 $('mk').onclick=makeRoom;$('rj').onclick=()=>{let c='';try{c=localStorage.getItem('othRoom')||''}catch(e){}joinRoom(c)};$('dr').onclick=discardSavedRoom;$('jn').onclick=()=>joinRoom($('rc').value);
+$('rc').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing)joinRoom($('rc').value)});
 $('leave').onclick=$('cancelWait').onclick=leaveRoom;
 $('chatSend').onclick=sendChat;
 $('chatIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing)sendChat()});
