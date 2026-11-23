@@ -30,7 +30,15 @@ body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radia
 .row{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:12px;font-size:.9rem}
 .info{gap:0;border:1px solid var(--line);border-radius:999px;padding:4px 6px;background:var(--card);backdrop-filter:blur(12px)}
 .info div{padding:5px 9px;font-weight:600;font-variant-numeric:tabular-nums}
-#olLamp{padding:5px 8px 5px 4px;display:flex;align-items:center}
+#olLamp{padding:4px 10px;display:flex;align-items:center;border-left:1px solid var(--line);margin-left:2px}
+.ol-ico{position:relative;display:inline-flex;width:18px;height:18px;color:var(--mute);transition:color .2s}
+.ol-ico.on{color:var(--fg)}
+.ol-ico svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:420px){
+  .info{font-size:.82rem;padding:4px}
+  .info div{padding:5px 7px}
+  #olLamp{padding:4px 8px}
+}
 .dot{display:inline-block;width:.78em;height:.78em;border-radius:50%;vertical-align:-.07em;margin-right:.32em}
 .dot.b{background:#111;box-shadow:0 0 0 1px rgba(255,255,255,.32)}
 .dot.w{background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.28)}
@@ -136,8 +144,8 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 #invc{font-size:1.15rem;letter-spacing:.3em;padding-left:.3em}
 .btn.sm{padding:7px 14px;font-size:.75rem;letter-spacing:.05em;white-space:nowrap}
 .ons{font-size:.82rem;color:var(--mute);margin-bottom:10px;text-align:center;line-height:1.4}
-.ondot{display:block;width:.72em;height:.72em;border-radius:50%;transition:background .2s}
-.ondot.on{background:#22c55e;box-shadow:0 0 0 2px rgba(34,197,94,.22)}
+.ondot{position:absolute;right:-2px;bottom:-1px;width:8px;height:8px;border-radius:50%;border:1.5px solid var(--bg);transition:background .2s}
+.ondot.on{background:#22c55e}
 .ondot.off{background:var(--mute)}
 /* chat */
 .chat-box{display:none;flex-direction:column;gap:8px;width:100%;max-width:520px;margin:8px 0 4px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:10px;backdrop-filter:blur(12px)}
@@ -210,7 +218,7 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
         <button type="button" class="btn ghost sm" id="cancelWait">待機をやめる（部屋を破棄）</button>
       </div>
       <div class="ons" id="ons" style="display:none"></div>
-      <div class="row info"><div>ターン <span id="tc">1</span></div><div>手番 <span id="tn">黒</span></div><div><span class="dot b"></span><span id="bc">2</span></div><div><span class="dot w"></span><span id="wc">2</span></div><div id="olLamp" style="display:none"><span class="ondot off" id="olDot"></span></div></div>
+      <div class="row info"><div>ターン <span id="tc">1</span></div><div>手番 <span id="tn">黒</span></div><div><span class="dot b"></span><span id="bc">2</span></div><div><span class="dot w"></span><span id="wc">2</span></div><div id="olLamp" style="display:none"><span class="ol-ico" id="olIco"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg><i class="ondot off" id="olDot"></i></span></div></div>
       <div class="skills" id="skl"><div id="p1" class="sc"><strong id="p1t">黒の必殺技</strong><div id="b-sk"></div></div><div id="p2" class="sc"><strong id="p2t">白の必殺技</strong><div id="w-sk"></div></div></div>
       <div class="chat-box" id="chatBox">
         <div class="chat-log" id="chatLog"></div>
@@ -549,8 +557,9 @@ function syncOlUI(){
   r.disabled=!canReset();
   const lv=$('leave');lv.style.display=ONLINE&&conn?'':'none';lv.textContent=isHost?'部屋を破棄':'退室';
   $('chatBox').style.display=ONLINE&&conn?'flex':'none';
-  const l=$('olLamp'),d=$('olDot');
+  const l=$('olLamp'),d=$('olDot'),ico=$('olIco');
   l.style.display=ONLINE&&conn?'flex':'none';
+  ico.classList.toggle('on',oppOnline);
   d.className='ondot '+(oppOnline?'on':'off');
   l.title=oppOnline?'相手：オンライン':'相手：オフライン';
   if(ONLINE&&conn&&waitStart){
@@ -767,11 +776,11 @@ async function joinRoom(raw){
     const r=db.ref('rooms/'+code),v=(await r.once('value')).val();
     if(g!==gen)return;
     if(!v||!v.host){
-      try{if(localStorage.getItem('othRoom')===code){localStorage.removeItem('othRoom');saveToss('')}}catch(e){}
+      try{if(localStorage.getItem('othRoom')===code)localStorage.removeItem('othRoom');saveToss('')}catch(e){}
       updRj();return setOns('その部屋コードの部屋が見つかりません');
     }
     if(v.ts&&Date.now()-v.ts>ROOM_TTL){
-      try{if(localStorage.getItem('othRoom')===code){localStorage.removeItem('othRoom');saveToss('')}}catch(e){}
+      try{if(localStorage.getItem('othRoom')===code)localStorage.removeItem('othRoom');saveToss('')}catch(e){}
       updRj();r.remove().catch(()=>{});
       return setOns('この部屋は有効期限（24時間）を過ぎたため破棄されました');
     }
