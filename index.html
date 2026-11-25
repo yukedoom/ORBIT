@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ORBIT</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2309090b'/%3E%3Crect x='9' y='9' width='21' height='21' rx='6' fill='%231e1e24'/%3E%3Crect x='34' y='9' width='21' height='21' rx='6' fill='%231e1e24'/%3E%3Crect x='9' y='34' width='21' height='21' rx='6' fill='%231e1e24'/%3E%3Crect x='34' y='34' width='21' height='21' rx='6' fill='%231e1e24'/%3E%3Ccircle cx='19.5' cy='19.5' r='7.2' fill='%23fff'/%3E%3Ccircle cx='44.5' cy='44.5' r='7.2' fill='%23fff'/%3E%3Ccircle cx='44.5' cy='19.5' r='6.5' fill='%2309090b' stroke='%238e8e96' stroke-width='1.8'/%3E%3Ccircle cx='19.5' cy='44.5' r='6.5' fill='%2309090b' stroke='%238e8e96' stroke-width='1.8'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2309090b'/%3E%3Crect x='9' y='9' width='21' height='21' rx='6' fill='%231e1e24'/%3E%3Crect x='34' y='9' width='21' height='21' rx='6' fill='%231e1e24'/%3E%3Crect x='9' y='34' width='21' height='21' rx='6' fill='%231e1e24'/%3E%3Crect x='34' y='34' width='21' height='21' rx='6' fill='%231e1e24'/%3E%3Ccircle cx='19.5' cy='19.5' r='7.2' fill='%23fff'/%3E%3Ccircle cx='44.5' cy='44.5' r='7.2' fill='%23fff'/%3E%3Ccircle cx='44.5' cy='19.5' r='6.5' fill='%2309090b' stroke='%238e8e96' stroke-width='1.8'/%3E%3Ccircle cx='19.5' cy='44.5' r='6.5' fill='%23090b' stroke='%238e8e96' stroke-width='1.8'/%3E%3C/svg%3E">
 <style>
 :root{--bg:#f2f2f3;--fg:#111;--mute:#8a8a90;--card:rgba(255,255,255,.7);--line:rgba(0,0,0,.08);--cell:#e6e6e8;--cellh:#d9d9dc;--board:#fff;--hint:rgba(0,0,0,.22);color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root{--bg:#09090b;--fg:#f0f0f0;--mute:#8e8e96;--card:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);--cell:#18181b;--cellh:#232327;--board:#101013;--hint:rgba(255,255,255,.28)}}
 html{scroll-padding-top:env(safe-area-inset-top,0px);overflow-y:scroll;scrollbar-gutter:stable}
 *{box-sizing:border-box;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 button:focus:not(:focus-visible){outline:none}
-button,.cell,.ddl li,.info,.sc,.tabs,.orb,#kcard h2,.sub,.stat,#message,.toss-box,#result,.modal-box{-webkit-user-select:none;user-select:none}
+button,.cell,.ddl li,.info,.sc,.tabs,.orb,#kcard h2,.sub,.stat,#message,.toss-box,#result,.modal-box,.chat-head{-webkit-user-select:none;user-select:none}
 body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radial-gradient(120% 55% at 50% -10%,var(--cellh),transparent 70%);background-repeat:no-repeat;color:var(--fg);font-family:"Helvetica Neue","Hiragino Sans","Yu Gothic",sans-serif}
 #app{display:flex;flex-direction:column;align-items:center;padding:18px 12px 30px;overflow-x:clip}
 .tabs{position:relative;display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:999px;padding:4px;background:var(--card);backdrop-filter:blur(12px);margin-bottom:20px}
@@ -46,7 +46,9 @@ body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radia
 .btn:active{transform:scale(.95)}.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}.btn.ghost{background:transparent;color:var(--mute);border-color:var(--line)}
 .msg{min-height:2.6em;max-width:520px;text-align:center;font-weight:500;color:var(--mute);font-size:.95rem;line-height:1.5;margin:6px 0}
 .card{width:100%;max-width:420px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:30px;padding:30px 22px 26px;backdrop-filter:blur(14px);box-shadow:0 30px 60px -24px rgba(0,0,0,.4)}
-.panel{background:var(--board);border:1px solid var(--line);border-radius:26px;padding:26px 8px;margin-bottom:20px;box-shadow:inset 0 2px 6px rgba(0,0,0,.08)}
+.card.glow{animation:cardGlow .65s ease-out}
+@keyframes cardGlow{0%{border-color:var(--fg);box-shadow:0 0 0 1.5px var(--fg),0 0 26px -4px var(--fg),0 30px 60px -24px rgba(0,0,0,.4)}100%{border-color:var(--line);box-shadow:0 30px 60px -24px rgba(0,0,0,.4)}}
+.panel{background:var(--board);border:1px solid var(--line);border-radius:26px;padding:26px 8px;margin-bottom:20px;box-shadow:inset 0 2px 6px rgba(0,0,0,.08);perspective:600px}
 .sub{margin:0 0 22px;color:var(--mute);font-size:.85rem}
 .stat{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 18px;font-size:.85rem;font-weight:600}
 .k-top{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px}
@@ -125,8 +127,8 @@ body{margin:0;min-height:100vh;background-color:var(--bg);background-image:radia
 .orb{width:92px;height:92px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;transition:background .3s,color .3s;background:radial-gradient(circle at 32% 28%,#fff,#d2d2d7 70%);color:#111;box-shadow:0 0 0 1px rgba(128,128,128,.18),0 12px 16px -6px rgba(0,0,0,.45),inset 0 -4px 7px rgba(0,0,0,.18)}
 .orb.up{background:linear-gradient(145deg,#2c2c31,#050506);color:#fff;box-shadow:0 12px 16px -6px rgba(0,0,0,.55),inset 0 -4px 8px rgba(0,0,0,.5)}
 .orb.pop{animation:flip .4s ease}
-.orb.bounce{animation:orbBounce .28s cubic-bezier(.22,1,.36,1)}
-@keyframes orbBounce{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+.orb.spin360{animation:spin360 .52s cubic-bezier(.22,1,.36,1)}
+@keyframes spin360{0%{transform:rotateY(0)}100%{transform:rotateY(360deg)}}
 .form{display:flex;gap:10px}
 input{flex:1;min-width:0;font:inherit;font-size:1.05rem;font-weight:600;color:var(--fg);background:var(--cell);border:1px solid var(--line);border-radius:999px;padding:13px 20px;outline:0;text-align:center;-moz-appearance:textfield}
 input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
@@ -151,17 +153,17 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 .ondot{position:absolute;right:-2px;bottom:-1px;width:8px;height:8px;border-radius:50%;border:1.5px solid var(--bg);transition:background .2s}
 .ondot.on{background:#22c55e}
 .ondot.off{background:var(--mute)}
-/* chat */
+/* chat (案C：相手の名札固定＋左右吹き出し) */
 .chat-box{display:none;flex-direction:column;gap:8px;width:100%;max-width:520px;margin:8px 0 4px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:10px;backdrop-filter:blur(12px)}
-.chat-log{display:none;flex-direction:column;gap:5px;padding:2px 4px;font-size:.8rem;line-height:1.4;max-height:82px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.chat-head{display:flex;align-items:center;justify-content:center;gap:6px;padding:0 6px 6px;border-bottom:1px solid var(--line);font-size:.75rem;color:var(--mute)}
+.chat-head b{color:var(--fg);font-weight:700;word-break:break-all}
+.chat-log{display:none;flex-direction:column;gap:6px;padding:2px 4px;font-size:.8rem;line-height:1.45;max-height:112px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
 .chat-log::-webkit-scrollbar{width:4px}
 .chat-log::-webkit-scrollbar-thumb{background:var(--line);border-radius:999px}
-.chat-m{display:flex;align-items:baseline;gap:7px;min-width:0;flex:none;animation:chatIn .2s ease}
-.chat-m span{flex:none;font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--line);color:var(--mute);max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chat-m.op span{background:var(--fg);color:var(--bg)}
-.chat-m.sys span{background:transparent;border:1px solid var(--line);color:var(--mute);font-size:.62rem;letter-spacing:.04em}
-.chat-m.sys b{color:var(--mute);font-size:.76rem}
-.chat-m b{font-weight:500;color:var(--fg);word-break:break-word}
+.chat-m{max-width:82%;flex:none;animation:chatIn .2s ease;word-break:break-word}
+.chat-m.me{align-self:flex-end;background:var(--fg);color:var(--bg);padding:6px 12px;border-radius:15px 15px 4px 15px;font-weight:500}
+.chat-m.op{align-self:flex-start;background:var(--cellh);color:var(--fg);padding:6px 12px;border-radius:15px 15px 15px 4px;font-weight:500}
+.chat-m.sys{align-self:center;max-width:100%;font-size:.73rem;color:var(--mute);padding:2px 8px;text-align:center}
 @keyframes chatIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 /* modals */
 .modal{position:fixed;inset:0;z-index:62;background:rgba(0,0,0,.42);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:20px}
@@ -210,7 +212,7 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
 #result>div{background:var(--bg);border:1px solid var(--line);border-radius:30px;padding:28px 26px;text-align:center;box-shadow:0 40px 80px -20px rgba(0,0,0,.5)}
 #result h2{margin:0 0 6px;font-weight:300;letter-spacing:.35em;padding-left:.35em}#result p{margin:0 0 14px;font-size:1.1rem}
 #rNote{margin:0 0 16px;font-size:.85rem;font-weight:700;color:var(--fg);display:none}
-@media (prefers-reduced-motion:reduce){.shake,.g.anim-r,.g.anim-l,#tossMsg.pop,.orb.bounce{animation:none}.tabs::before{transition:none}#toss.go .coin-wrap,#toss.go .shadow,#toss.go-b .coin,#toss.go-w .coin{animation-duration:.01ms}.btn:active,.tg:active,.sk:active,.tabs button:active,.ddb:active{transform:none}}
+@media (prefers-reduced-motion:reduce){.shake,.g.anim-r,.g.anim-l,#tossMsg.pop,.orb.spin360,.card.glow{animation:none}.tabs::before{transition:none}#toss.go .coin-wrap,#toss.go .shadow,#toss.go-b .coin,#toss.go-w .coin{animation-duration:.01ms}.btn:active,.tg:active,.sk:active,.tabs button:active,.ddb:active{transform:none}}
 </style>
 </head>
 <body>
@@ -240,6 +242,7 @@ input::placeholder{color:var(--mute);font-weight:500}input:focus{box-shadow:0 0 
       <div class="row info"><div>ターン <span id="tc">1</span></div><div>手番 <span id="tn">黒</span></div><div><span class="dot b"></span><span id="bc">2</span></div><div><span class="dot w"></span><span id="wc">2</span></div><div id="olLamp" style="display:none"><span class="ol-ico" id="olIco"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg><i class="ondot off" id="olDot"></i></span></div></div>
       <div class="skills" id="skl"><div id="p1" class="sc"><strong id="p1t">黒の必殺技</strong><div id="b-sk"></div></div><div id="p2" class="sc"><strong id="p2t">白の必殺技</strong><div id="w-sk"></div></div></div>
       <div class="chat-box" id="chatBox">
+        <div class="chat-head"><span>vs</span><b id="chatOpp">相手</b></div>
         <div class="chat-log" id="chatLog"></div>
         <div class="chat-form"><input id="chatIn" placeholder="メッセージ（40文字まで）" maxlength="40" autocomplete="off"><button type="button" class="btn sm" id="chatSend">送信</button></div>
       </div>
@@ -320,6 +323,7 @@ function netErr(e){
 function flash(c){const f=document.createElement('div');f.className='flash '+(c||'');document.body.appendChild(f);setTimeout(()=>f.remove(),500)}
 function shake(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');setTimeout(()=>el.classList.remove('shake'),400)}
 function rings(n){for(let i=0;i<n;i++)setTimeout(()=>{const e=document.createElement('div');e.className='ring';document.body.appendChild(e);setTimeout(()=>e.remove(),950)},i*110)}
+function spinOrb(){const o=$('orb');o.classList.remove('pop','spin360');void o.offsetWidth;o.classList.add('spin360')}
 $('tabs').onclick=e=>{
   const b=e.target.closest('button');if(!b||b.classList.contains('on'))return;
   const next=b.dataset.g,prevTab=$('tabs').dataset.tab||'o';
@@ -332,6 +336,7 @@ $('tabs').onclick=e=>{
     s.classList.toggle('on',on);
     if(on){void s.offsetWidth;s.classList.add(cls)}
   });
+  if(next==='k')spinOrb();
 };
 {
   let named='';try{named=localStorage.getItem('orbitNamed')||''}catch(e){}
@@ -537,16 +542,32 @@ function nm(b,sh,p,d,al,be){
     const v=-nm(nb,sh,3-p,d-1,-be,-al);if(v>best)best=v;if(v>al)al=v;if(al>=be)break}
   return best;
 }
+function hasNearSelf(b,r,c,p){
+  for(const[dr,dc]of DIRS){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<N&&nc>=0&&nc<N&&b[nr][nc]===p)return true}
+  return false;
+}
 function aiCandidates(){
   const P=AIC,O=(3-AIC),L=[],oc=cnt(O);
-  for(const[r,c]of movesOn(board,shields,P))L.push({t:'move',r,c,pen:0});
+  const ms=movesOn(board,shields,P);
+  for(const[r,c]of ms)L.push({t:'move',r,c,pen:0});
   if(SKILLS_ON){
+    let emptyCnt=0;for(const row of board)for(const v of row)if(v===EMPTY)emptyCnt++;
+    const oppThreat=cooldowns[O].steal===0||cooldowns[O].meteor===0;
     const ok=k=>cooldowns[P][k]===0;
-    for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=board[r][c];
-      if(ok('meteor')&&v===O&&oc>1&&(meteorCount[P]>=3||!shields[r][c]))L.push({t:'meteor',r,c,pen:10});
-      if(ok('steal')&&v===O&&!shields[r][c]&&oc>1)L.push({t:'steal',r,c,pen:10});
-      if(ok('snipe')&&v===EMPTY)L.push({t:'snipe',r,c,pen:12});
-      if(ok('shield')&&v===P&&!shields[r][c]&&countShields(P)<3)L.push({t:'shield',r,c,pen:6-Math.max(0,W[r][c])*.5});
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){const v=board[r][c],isC=(r===0||r===7)&&(c===0||c===7);
+      if(ok('meteor')&&v===O&&oc>1&&(meteorCount[P]>=3||!shields[r][c]))L.push({t:'meteor',r,c,pen:isC?2:12});
+      if(ok('steal')&&v===O&&!shields[r][c]&&oc>1)L.push({t:'steal',r,c,pen:isC?0:12});
+      if(ok('snipe')&&v===EMPTY){
+        let pen=ms.length?24:4;
+        if(isC){
+          const adjSelf=hasNearSelf(board,r,c,P);
+          if(emptyCnt>16&&!adjSelf&&ms.length)pen=oppThreat?115:85;
+          else if(oppThreat&&!adjSelf&&ms.length)pen=45;
+          else pen=14;
+        }
+        L.push({t:'snipe',r,c,pen});
+      }
+      if(ok('shield')&&v===P&&!shields[r][c]&&countShields(P)<3&&!isC)L.push({t:'shield',r,c,pen:10-Math.max(0,W[r][c])*.3});
     }
   }
   return L;
@@ -759,9 +780,15 @@ function omegaEngine(req){
 
   if(req.skillsOn){
     const ok=k=>req.cd[k]===0;
+    const oppCd=req.oppCd||{steal:0,meteor:0};
+    const oppThreat=oppCd.steal===0||oppCd.meteor===0;
     const sup=req.mc>=3;
     let shCnt=0;for(let i=0;i<64;i++)if(sh0[i]&&b0[i]===P)shCnt++;
     const oppHasCorner=moves(b0,sh0,O).some(m=>m[0]===0||m[0]===7||m[0]===56||m[0]===63);
+    const hasAdj=(r,c)=>{
+      for(let d=0;d<8;d++){const nr=r+DR[d],nc=c+DC[d];if(nr>=0&&nr<8&&nc>=0&&nc<8&&b0[nr*8+nc]===P)return true}
+      return false;
+    };
 
     for(let i=0;i<64;i++){
       const v=b0[i],r=i>>3,c=i&7,isC=(i===0||i===7||i===56||i===63);
@@ -776,8 +803,14 @@ function omegaEngine(req){
         C.push({t:'steal',idx:i,r,c,pen});
       }
       if(ok('snipe')&&v===0){
-        let pen=isC?2:(myMoves.length===0?4:(empty0<=10?10:28));
-        if(oppHasCorner&&isC)pen=-8;
+        let pen=myMoves.length===0?4:(empty0<=10?10:28);
+        if(isC){
+          const adjSelf=hasAdj(r,c);
+          if(empty0>16&&!adjSelf&&myMoves.length)pen=oppThreat?75:55;
+          else if(oppThreat&&!adjSelf&&myMoves.length)pen=32;
+          else if(oppHasCorner)pen=-8;
+          else pen=4;
+        }
         C.push({t:'snipe',idx:i,r,c,pen});
       }
       if(ok('shield')&&v===P&&!sh0[i]&&shCnt<3&&!isC&&!stabSelf[i]){
@@ -869,7 +902,7 @@ function aiMove(myJob){
   if(over||!aiTurn())return;
   const mode=$('mode').value,opp=(3-AIC);
   if(mode==='ai-omega'){
-    const req={id:myJob,board,shields,aic:AIC,skillsOn:SKILLS_ON,cd:cooldowns[AIC],mc:meteorCount[AIC]};
+    const req={id:myJob,board,shields,aic:AIC,skillsOn:SKILLS_ON,cd:cooldowns[AIC],oppCd:cooldowns[opp],mc:meteorCount[AIC]};
     thinking=true;
     runOmegaAsync(req,a=>{
       if(myJob!==aiJob||over||!aiTurn())return;
@@ -901,7 +934,11 @@ function aiMove(myJob){
 }
 
 /* ---- オンライン対戦（Firebase Realtime Database） ---- */
-let db=null,uid='',roomRef=null,localN=0,watchers=[],chatCooldown=0;
+let db=null,uid='',roomRef=null,localN=0,watchers=[],chatCooldown=0,oppName='相手',helloSentName=null;
+function setOppName(n){
+  oppName=n?String(n).slice(0,12):'名無し';
+  $('chatOpp').textContent=oppName;
+}
 function titles(){
   let a='黒の必殺技',b='白の必殺技';
   if(!waitStart&&!tossing){
@@ -961,17 +998,15 @@ function clearChatUI(){
   const log=$('chatLog');
   log.textContent='';log.style.display='none';
   $('chatIn').value='';
+  oppName='相手';helloSentName=null;
+  $('chatOpp').textContent='相手';
 }
 function appendChat(m){
   const log=$('chatLog');
   const atBottom=log.style.display==='none'||log.scrollHeight-log.scrollTop-log.clientHeight<24;
   const row=document.createElement('div');
   row.className='chat-m '+m.type;
-  const tag=document.createElement('span');
-  tag.textContent=m.type==='sys'?'LOG':m.sender;
-  const body=document.createElement('b');
-  body.textContent=m.text;
-  row.appendChild(tag);row.appendChild(body);
+  row.textContent=m.text;
   log.style.display='flex';
   log.appendChild(row);
   if(atBottom||m.type==='me')log.scrollTop=log.scrollHeight;
@@ -980,6 +1015,12 @@ function pushChat(obj){
   if(!(ONLINE&&roomRef&&conn&&db))return;
   roomRef.child('chat').push(JSON.stringify(obj)).catch(e=>setOns(netErr(e)));
   roomRef.child('ts').set(firebase.database.ServerValue.TIMESTAMP).catch(()=>{});
+}
+function sendHelloIfNeeded(){
+  if(!(ONLINE&&roomRef&&conn&&db))return;
+  if(helloSentName===playerName)return;
+  helloSentName=playerName;
+  pushChat({t:'hello',by:uid,name:playerName});
 }
 function sendChat(){
   if(!(ONLINE&&roomRef&&conn&&db))return;
@@ -990,17 +1031,20 @@ function sendChat(){
   chatCooldown=now+1000;
   inp.value='';
   const obj={t:'msg',by:uid,text};
-  if(playerName)obj.name=playerName;
+  if(playerName){obj.name=playerName;helloSentName=playerName}
   pushChat(obj);
 }
 function applyChat(str){
   let x;try{x=JSON.parse(str)}catch(e){return}
   if(!x||!x.t)return;
-  if(x.t==='msg'){
+  if(x.t==='hello'){
+    if(x.by===uid)helloSentName=x.name||'';
+    else setOppName(x.name||'');
+  }else if(x.t==='msg'){
     if(!x.text)return;
     const mine=x.by===uid;
-    const sender=x.name?String(x.name).slice(0,12):(mine?'あなた':'相手');
-    appendChat({type:mine?'me':'op',sender,text:String(x.text).slice(0,40)});
+    if(!mine&&'name'in x)setOppName(x.name||'');
+    appendChat({type:mine?'me':'op',text:String(x.text).slice(0,40)});
   }else if(x.t==='sys'&&x.text){
     appendChat({type:'sys',text:String(x.text)});
   }else if(x.t==='start'&&x.hc){
@@ -1097,16 +1141,19 @@ function attach(code,role,active){
       conn=true;setOns('');syncPresence(rr);syncOlUI();syncTg();
       if(sn.val())applySnap(sn.val());
       else{$('inv').style.display='none';initGame()}
+      rr.child('chat').limitToLast(50).once('value').then(()=>{if(rr===roomRef&&conn)sendHelloIfNeeded()}).catch(()=>{});
     });
     if(active){
       rr.child('snap').once('value').then(sn=>{
         if(rr===roomRef&&conn&&!sn.val()&&localN===0)initGame();
       }).catch(()=>{});
+      rr.child('chat').limitToLast(50).once('value').then(()=>{if(rr===roomRef&&conn)sendHelloIfNeeded()}).catch(()=>{});
     }
   }else{
     watch(rr.child('host'),'value',s=>{
       if(s.val()===null&&rr===roomRef){closeNet(true);initGame();setOns('ホストが部屋を閉じました')}
     });
+    rr.child('chat').limitToLast(50).once('value').then(()=>{if(rr===roomRef&&conn)sendHelloIfNeeded()}).catch(()=>{});
     setOns('接続しました。準備待ちです…');render();
   }
 }
@@ -1325,7 +1372,7 @@ $('mode').value='ai-easy';buildDD();initGame();
 const MAX=100000000;let target=Math.floor(Math.random()*MAX)+1,attempts=0,resetTimer=null,orbTap=0,orbTimer=null,polite=false;
 let kazBest=0;try{kazBest=parseInt(localStorage.getItem('orbitKazBest'))||0}catch(e){}
 const say=t=>$('message').textContent=t;
-function orb(t,up){const o=$('orb');o.textContent=t;o.classList.toggle('up',up);o.classList.remove('pop','bounce');void o.offsetWidth;o.classList.add('pop')}
+function orb(t,up){const o=$('orb');o.textContent=t;o.classList.toggle('up',up);o.classList.remove('pop','spin360');void o.offsetWidth;o.classList.add('pop')}
 async function submitScore(rec){
   if(!kazBest||rec<kazBest){kazBest=rec;try{localStorage.setItem('orbitKazBest',String(rec))}catch(e){}}
   try{
@@ -1382,7 +1429,8 @@ $('orb').onclick=()=>{
     $('guess').placeholder=polite?'数字をご入力ください':'数字入れろカス';
     $('go').textContent=polite?'確認':'押せや';
     say(polite?'失礼いたしました。丁寧にご案内します。':'敬語疲れたわ、元に戻るな雑魚ｗ');
-    const o=$('orb');o.classList.remove('pop','bounce');void o.offsetWidth;o.classList.add('bounce');
+    spinOrb();
+    const kc=$('kcard');kc.classList.remove('glow');void kc.offsetWidth;kc.classList.add('glow');
     return;
   }
   orbTimer=setTimeout(()=>{orbTap=0;orbTimer=null},2000);
