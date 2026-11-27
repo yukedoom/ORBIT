@@ -1383,12 +1383,9 @@ async function submitScore(rec){
     await db.ref('kazuate').push({best:rec,name:playerName||'名無し',uid,ts:firebase.database.ServerValue.TIMESTAMP});
   }catch(e){}
 }
-async function openRanking(){
-  $('rkName').value=playerName;
-  $('rkBest').textContent=kazBest?`自己ベスト：${kazBest}回`:'まだクリア記録がありません';
+async function loadRanking(){
   const list=$('rkList');
   list.innerHTML='<div class="rk-empty">読み込み中…</div>';
-  $('rankModal').classList.add('show');
   try{
     const{db}=await fbInit();
     const snap=await db.ref('kazuate').orderByChild('best').limitToFirst(30).once('value');
@@ -1413,13 +1410,34 @@ async function openRanking(){
     list.appendChild(em);
   }
 }
+function openRanking(){
+  $('rkName').value=playerName;
+  $('rkBest').textContent=kazBest?`自己ベスト：${kazBest}回`:'まだクリア記録がありません';
+  $('rankModal').classList.add('show');
+  loadRanking();
+}
 $('rkBtn').onclick=openRanking;
 $('rkClose').onclick=()=>$('rankModal').classList.remove('show');
 $('rankModal').onclick=e=>{if(e.target===$('rankModal'))$('rankModal').classList.remove('show')};
-$('rkSave').onclick=e=>{
-  setPlayerName($('rkName').value);
+$('rkSave').onclick=async e=>{
   const b=e.currentTarget,o=b.textContent;
-  b.textContent='✓ 保存';setTimeout(()=>b.textContent=o,1200);
+  setPlayerName($('rkName').value);
+  b.disabled=true;b.textContent='更新中…';
+  try{
+    const{db,uid}=await fbInit();
+    const newName=playerName||'名無し';
+    const snap=await db.ref('kazuate').orderByChild('uid').equalTo(uid).once('value');
+    const upd={};
+    snap.forEach(c=>{const v=c.val();if(v&&v.name!==newName)upd[c.key+'/name']=newName});
+    if(Object.keys(upd).length)await db.ref('kazuate').update(upd);
+    if($('rankModal').classList.contains('show'))await loadRanking();
+    b.textContent='✓ 保存';
+  }catch(err){
+    b.textContent='エラー';
+  }finally{
+    b.disabled=false;
+    setTimeout(()=>b.textContent=o,1200);
+  }
 };
 $('rkName').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing)$('rkSave').click()});
 
